@@ -14,6 +14,7 @@
 #include <QNetworkReply>
 #include <QProcess>
 #include <QSslConfiguration>
+#include <QSslSocket>
 #include <QUrlQuery>
 #include <QTemporaryDir>
 #include <QUuid>
@@ -29,6 +30,13 @@ class PortalSessionTest final : public QObject {
     Q_OBJECT
 
 private slots:
+    void initTestCase() {
+        if (qEnvironmentVariableIsSet("VIAMIORA_TEST_OPENSSL")) {
+            QVERIFY(QSslSocket::availableBackends().contains(QStringLiteral("openssl")));
+            QVERIFY(QSslSocket::setActiveBackend(QStringLiteral("openssl")));
+        }
+    }
+
     void retryAfterHonorsSecondsAndHttpDate() {
         const auto now = QDateTime(QDate(2026, 11, 19), QTime(12, 0), QTimeZone::UTC)
             .toMSecsSinceEpoch();
