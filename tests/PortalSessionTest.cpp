@@ -310,7 +310,7 @@ private slots:
         const auto extensionPath = directory.filePath(QStringLiteral("server.ext"));
         const auto logPath = directory.filePath(QStringLiteral("invitations.json"));
         QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
-            QStringLiteral("req"), QStringLiteral("-quiet"), QStringLiteral("-x509"), QStringLiteral("-newkey"),
+            QStringLiteral("req"), QStringLiteral("-x509"), QStringLiteral("-newkey"),
             QStringLiteral("rsa:2048"), QStringLiteral("-nodes"),
             QStringLiteral("-keyout"), caKeyPath, QStringLiteral("-out"), caPath,
             QStringLiteral("-days"), QStringLiteral("1"), QStringLiteral("-subj"),
@@ -318,7 +318,7 @@ private slots:
             QStringLiteral("basicConstraints=critical,CA:TRUE"), QStringLiteral("-addext"),
             QStringLiteral("keyUsage=critical,keyCertSign,cRLSign")}), 0);
         QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
-            QStringLiteral("req"), QStringLiteral("-quiet"), QStringLiteral("-newkey"), QStringLiteral("rsa:2048"),
+            QStringLiteral("req"), QStringLiteral("-newkey"), QStringLiteral("rsa:2048"),
             QStringLiteral("-nodes"), QStringLiteral("-keyout"), keyPath,
             QStringLiteral("-out"), csrPath, QStringLiteral("-subj"),
             QStringLiteral("/CN=127.0.0.1")}), 0);
