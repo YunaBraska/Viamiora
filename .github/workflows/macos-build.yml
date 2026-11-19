@@ -24,9 +24,10 @@ jobs:
       prepare_command: |
         set -eu
         brew install cmake ninja openssl@3
-        python3 -m pip install --disable-pip-version-check aqtinstall==3.3.0
+        python3 -m venv "$RUNNER_TEMP/aqt"
+        "$RUNNER_TEMP/aqt/bin/python" -m pip install --disable-pip-version-check aqtinstall==3.3.0
         if ! test -d ".cache/Qt/6.12.1/macos"; then
-          aqt -c tools/aqt-sha1.ini install-qt -O .cache/Qt mac desktop 6.12.1 clang_64 \
+          "$RUNNER_TEMP/aqt/bin/aqt" -c tools/aqt-sha1.ini install-qt -O .cache/Qt mac desktop 6.12.1 clang_64 \
             -m qtwebview --archives qtbase qtdeclarative qttools qttranslations qtsvg
         fi
       build_command: |

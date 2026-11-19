@@ -23,7 +23,7 @@ jobs:
         shell: sh
         run: |
           set -eu
-          value=$(date -u +%Y.%m.%d | awk -F. '{ printf "%d.%d.%d-SNAPSHOT\\n", $1, $2, $3 }')
+          value=$(date -u +%Y.%m.%d | awk -F. '{ printf "%d.%d.%d-SNAPSHOT\n", $1, $2, $3 }')
           printf 'value=%s\n' "$value" >> "$GITHUB_OUTPUT"
 
   build:
