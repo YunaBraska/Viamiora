@@ -329,7 +329,13 @@ private slots:
             keyPath, logPath, start.toString(Qt::ISODateWithMs), end.toString(Qt::ISODateWithMs),
             QStringLiteral(VIAMIORA_VERSION)});
         QVERIFY(server.waitForStarted(3000));
-        QVERIFY(server.waitForReadyRead(3000));
+        QElapsedTimer startup;
+        startup.start();
+        while (!server.canReadLine() && server.state() != QProcess::NotRunning && startup.elapsed() < 7000) {
+            QTest::qWait(50);
+        }
+        QVERIFY2(server.canReadLine(), qPrintable(QStringLiteral("Local HTTPS fixture did not announce a port: %1 (%2)")
+            .arg(QString::fromUtf8(server.readAllStandardError()).trimmed(), server.errorString())));
         bool validPort = false;
         const auto port = QString::fromUtf8(server.readLine().trimmed()).toInt(&validPort);
         QVERIFY(validPort && port > 0);
@@ -905,7 +911,13 @@ private slots:
             keyPath, logPath, start.toString(Qt::ISODateWithMs),
             start.addSecs(3600).toString(Qt::ISODateWithMs), QStringLiteral(VIAMIORA_VERSION)});
         QVERIFY(server.waitForStarted(3000));
-        QVERIFY(server.waitForReadyRead(3000));
+        QElapsedTimer startup;
+        startup.start();
+        while (!server.canReadLine() && server.state() != QProcess::NotRunning && startup.elapsed() < 7000) {
+            QTest::qWait(50);
+        }
+        QVERIFY2(server.canReadLine(), qPrintable(QStringLiteral("Local HTTPS fixture did not announce a port: %1 (%2)")
+            .arg(QString::fromUtf8(server.readAllStandardError()).trimmed(), server.errorString())));
         bool validPort = false;
         const auto port = QString::fromUtf8(server.readLine().trimmed()).toInt(&validPort);
         QVERIFY(validPort && port > 0);
