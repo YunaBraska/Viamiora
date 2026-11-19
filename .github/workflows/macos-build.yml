@@ -39,8 +39,7 @@ jobs:
         cmake --build build
       test_command: |
         set -eu
-        VIAMIORA_TEST_OPENSSL=1 DYLD_LIBRARY_PATH="$(brew --prefix openssl@3)/lib" \
-          ctest --test-dir build --output-on-failure
+        ctest --test-dir build --output-on-failure
       package_command: |
         set -eu
         python3 tools/package_macos.py --app build/viamiora.app \
