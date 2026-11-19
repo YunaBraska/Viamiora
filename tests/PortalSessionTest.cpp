@@ -313,40 +313,16 @@ private slots:
         QVERIFY(directory.isValid());
         const auto certificatePath = directory.filePath(QStringLiteral("certificate.pem"));
         const auto keyPath = directory.filePath(QStringLiteral("key.pem"));
-        const auto caPath = directory.filePath(QStringLiteral("ca.pem"));
-        const auto caKeyPath = directory.filePath(QStringLiteral("ca.key"));
-        const auto csrPath = directory.filePath(QStringLiteral("server.csr"));
-        const auto extensionPath = directory.filePath(QStringLiteral("server.ext"));
         const auto logPath = directory.filePath(QStringLiteral("invitations.json"));
         QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
             QStringLiteral("req"), QStringLiteral("-x509"), QStringLiteral("-newkey"),
-            QStringLiteral("rsa:2048"), QStringLiteral("-nodes"),
-            QStringLiteral("-keyout"), caKeyPath, QStringLiteral("-out"), caPath,
-            QStringLiteral("-days"), QStringLiteral("1"), QStringLiteral("-subj"),
-            QStringLiteral("/CN=Viamiora Test CA"), QStringLiteral("-addext"),
+            QStringLiteral("rsa:2048"), QStringLiteral("-nodes"), QStringLiteral("-keyout"),
+            keyPath, QStringLiteral("-out"), certificatePath, QStringLiteral("-days"),
+            QStringLiteral("1"), QStringLiteral("-subj"), QStringLiteral("/CN=127.0.0.1"),
+            QStringLiteral("-addext"), QStringLiteral("subjectAltName=IP:127.0.0.1"),
+            QStringLiteral("-addext"),
             QStringLiteral("basicConstraints=critical,CA:TRUE"), QStringLiteral("-addext"),
-            QStringLiteral("keyUsage=critical,keyCertSign,cRLSign"), QStringLiteral("-addext"),
-            QStringLiteral("subjectKeyIdentifier=hash")}), 0);
-        QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
-            QStringLiteral("req"), QStringLiteral("-newkey"), QStringLiteral("rsa:2048"),
-            QStringLiteral("-nodes"), QStringLiteral("-keyout"), keyPath,
-            QStringLiteral("-out"), csrPath, QStringLiteral("-subj"),
-            QStringLiteral("/CN=127.0.0.1")}), 0);
-        QFile extensions(extensionPath);
-        QVERIFY(extensions.open(QIODevice::WriteOnly));
-        QVERIFY(extensions.write("subjectAltName=IP:127.0.0.1\n"
-                                 "basicConstraints=critical,CA:FALSE\n"
-                                 "keyUsage=critical,digitalSignature,keyEncipherment\n"
-                                 "extendedKeyUsage=serverAuth\n"
-                                 "subjectKeyIdentifier=hash\n"
-                                 "authorityKeyIdentifier=keyid,issuer\n") > 0);
-        extensions.close();
-        QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
-            QStringLiteral("x509"), QStringLiteral("-req"), QStringLiteral("-in"), csrPath,
-            QStringLiteral("-CA"), caPath, QStringLiteral("-CAkey"), caKeyPath,
-            QStringLiteral("-CAcreateserial"), QStringLiteral("-out"), certificatePath,
-            QStringLiteral("-days"), QStringLiteral("1"), QStringLiteral("-extfile"),
-            extensionPath}), 0);
+            QStringLiteral("keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign")}), 0);
         const auto originalSsl = QSslConfiguration::defaultConfiguration();
         struct RestoreSsl {
             QSslConfiguration original;
@@ -382,7 +358,7 @@ private slots:
         QVERIFY(config.setPortalUrl(origin));
         QVERIFY(config.setLanguage(QStringLiteral("de")));
         auto trustedSsl = QSslConfiguration::defaultConfiguration();
-        const auto testCa = QSslCertificate::fromPath(caPath);
+        const auto testCa = QSslCertificate::fromPath(certificatePath);
         QVERIFY(!testCa.isEmpty());
         trustedSsl.setCaCertificates(testCa);
         QSslConfiguration::setDefaultConfiguration(trustedSsl);
