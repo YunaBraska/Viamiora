@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "14.4" CACHE STRING "Minimum supported macOS version" FORCE)
 endif()
-project(Viamiora VERSION 1.0.0 LANGUAGES CXX)
+project(Viamiora LANGUAGES CXX)
 
 string(TIMESTAMP VIAMIORA_YEAR "%Y" UTC)
 string(TIMESTAMP VIAMIORA_MONTH "%m" UTC)
