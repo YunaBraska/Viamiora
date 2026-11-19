@@ -1,0 +1,114 @@
+name: Signed macOS candidate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  QT_VERSION: 6.12.1
+
+jobs:
+  package:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install build tools and Qt
+        run: |
+          brew install cmake ninja
+          python -m pip install aqtinstall==3.3.0
+          aqt -c tools/aqt-sha1.ini install-qt -O "$RUNNER_TEMP/Qt" mac desktop "$QT_VERSION" clang_64 \
+            -m qtwebview --archives qtbase qtdeclarative qttools qttranslations qtsvg
+      - name: Build and test universal app
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/Qt/$QT_VERSION/macos" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=14.4 \
+            -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DBUILD_TESTING=ON
+          cmake --build build --parallel 4
+          ctest --test-dir build --output-on-failure --parallel 4
+      - name: Sign, notarize, and inspect
+        shell: bash
+        env:
+          CERTIFICATE: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
+          NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.MACOS_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.MACOS_NOTARY_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CERTIFICATE" && test -n "$CERTIFICATE_PASSWORD"
+          test -n "$NOTARY_KEY" && test -n "$NOTARY_KEY_ID" && test -n "$NOTARY_ISSUER_ID"
+          umask 077
+          keychain="$RUNNER_TEMP/viamiora-release.keychain-db"
+          cleanup() {
+            rm -f "$RUNNER_TEMP/viamiora-release.p12" "$RUNNER_TEMP/viamiora-release.p8"
+            security delete-keychain "$keychain" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          password="$(uuidgen)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 14400 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security default-keychain -s "$keychain"
+          security list-keychains -d user -s "$keychain"
+          printf '%s' "$CERTIFICATE" | base64 -D > "$RUNNER_TEMP/viamiora-release.p12"
+          security import "$RUNNER_TEMP/viamiora-release.p12" -k "$keychain" \
+            -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
+          identity="$(security find-identity -v -p codesigning "$keychain" | \
+            awk -F '"' '/Developer ID Application:/ { print $2; exit }')"
+          test -n "$identity"
+          printf '%s' "$NOTARY_KEY" > "$RUNNER_TEMP/viamiora-release.p8"
+          xcrun notarytool store-credentials viamiora-release --keychain "$keychain" \
+            --key "$RUNNER_TEMP/viamiora-release.p8" \
+            --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID"
+
+          python tools/package_macos.py --app build/viamiora.app \
+            --qt "$RUNNER_TEMP/Qt/$QT_VERSION/macos" \
+            --output build/package/Viamiora.app --identity "$identity" --timestamp
+          python tools/check_macos_bundle.py build/package/Viamiora.app \
+            --require-signature --require-distribution --require-universal
+          python tools/smoke_macos_bundle.py build/package/Viamiora.app
+
+          mkdir -p build/release
+          ditto -c -k --keepParent build/package/Viamiora.app build/release/notary-upload.zip
+          xcrun notarytool submit build/release/notary-upload.zip \
+            --keychain-profile viamiora-release --keychain "$keychain" --wait \
+            --output-format json > build/release/notary-result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          status = json.loads(Path('build/release/notary-result.json').read_text()).get('status')
+          if status != 'Accepted':
+              raise SystemExit(f'Notarization status: {status}')
+          PY
+          xcrun stapler staple build/package/Viamiora.app
+          xcrun stapler validate build/package/Viamiora.app
+          spctl --assess --type execute --verbose build/package/Viamiora.app
+          python tools/check_macos_bundle.py build/package/Viamiora.app \
+            --require-signature --require-distribution --require-universal
+          version="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' \
+            build/package/Viamiora.app/Contents/Info.plist)"
+          archive_name="Viamiora-${version}-macos-universal.zip"
+          ditto -c -k --keepParent build/package/Viamiora.app "build/release/$archive_name"
+          (cd build/release && shasum -a 256 "$archive_name" > "${archive_name}.sha256" && \
+            shasum -a 256 -c "${archive_name}.sha256")
+          rm build/release/notary-upload.zip
+          rm build/release/notary-result.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: viamiora-macos-candidate-${{ github.sha }}
+          path: |
+            build/release/*.zip
+            build/release/*.sha256
+          if-no-files-found: error
+          retention-days: 14

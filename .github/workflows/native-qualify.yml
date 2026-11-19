@@ -1,0 +1,54 @@
+name: Native qualification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  QT_VERSION: 6.12.1
+
+jobs:
+  macos:
+    name: macOS build and tests (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: |
+          brew install cmake ninja
+          python -m pip install aqtinstall==3.3.0
+      - name: Install Qt
+        run: |
+          aqt -c tools/aqt-sha1.ini install-qt -O "$RUNNER_TEMP/Qt" mac desktop "$QT_VERSION" clang_64 \
+            -m qtwebview --archives qtbase qtdeclarative qttools qttranslations qtsvg
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/Qt/$QT_VERSION/macos" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=14.4 -DBUILD_TESTING=ON
+      - name: Build
+        run: cmake --build build --parallel 4
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 4
+      - name: Package and inspect
+        run: |
+          python tools/package_macos.py --app build/viamiora.app \
+            --qt "$RUNNER_TEMP/Qt/$QT_VERSION/macos" \
+            --output build/package/Viamiora.app --local-test
+          python tests/PackageArtifactTest.py build/package/Viamiora.app
+      - name: Open packaged app
+        run: python tools/smoke_macos_bundle.py build/package/Viamiora.app
