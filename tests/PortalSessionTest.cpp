@@ -317,7 +317,8 @@ private slots:
             QStringLiteral("-days"), QStringLiteral("1"), QStringLiteral("-subj"),
             QStringLiteral("/CN=Viamiora Test CA"), QStringLiteral("-addext"),
             QStringLiteral("basicConstraints=critical,CA:TRUE"), QStringLiteral("-addext"),
-            QStringLiteral("keyUsage=critical,keyCertSign,cRLSign")}), 0);
+            QStringLiteral("keyUsage=critical,keyCertSign,cRLSign"), QStringLiteral("-addext"),
+            QStringLiteral("subjectKeyIdentifier=hash")}), 0);
         QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
             QStringLiteral("req"), QStringLiteral("-newkey"), QStringLiteral("rsa:2048"),
             QStringLiteral("-nodes"), QStringLiteral("-keyout"), keyPath,
@@ -328,7 +329,9 @@ private slots:
         QVERIFY(extensions.write("subjectAltName=IP:127.0.0.1\n"
                                  "basicConstraints=critical,CA:FALSE\n"
                                  "keyUsage=critical,digitalSignature,keyEncipherment\n"
-                                 "extendedKeyUsage=serverAuth\n") > 0);
+                                 "extendedKeyUsage=serverAuth\n"
+                                 "subjectKeyIdentifier=hash\n"
+                                 "authorityKeyIdentifier=keyid,issuer\n") > 0);
         extensions.close();
         QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
             QStringLiteral("x509"), QStringLiteral("-req"), QStringLiteral("-in"), csrPath,
