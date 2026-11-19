@@ -14,7 +14,10 @@ inline bool addPortalCaCertificates(const QString &path) {
     const auto certificates = QSslCertificate::fromPath(path);
     if (certificates.isEmpty()) return false;
     auto tls = QSslConfiguration::defaultConfiguration();
-    tls.addCaCertificates(certificates);
+    auto authorities = QSslConfiguration::systemCaCertificates();
+    if (authorities.isEmpty()) authorities = tls.caCertificates();
+    authorities.append(certificates);
+    tls.setCaCertificates(authorities);
     QSslConfiguration::setDefaultConfiguration(tls);
     return true;
 }
