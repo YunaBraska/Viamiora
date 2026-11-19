@@ -5,13 +5,16 @@
 #include <QLocale>
 #include <QNetworkRequest>
 #include <QSet>
+#include <QSslCertificate>
 #include <QSysInfo>
 #include <QSslConfiguration>
 #include <algorithm>
 
 inline bool addPortalCaCertificates(const QString &path) {
+    const auto certificates = QSslCertificate::fromPath(path);
+    if (certificates.isEmpty()) return false;
     auto tls = QSslConfiguration::defaultConfiguration();
-    if (!tls.addCaCertificates(path)) return false;
+    tls.addCaCertificates(certificates);
     QSslConfiguration::setDefaultConfiguration(tls);
     return true;
 }
