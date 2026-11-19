@@ -13,7 +13,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QProcess>
+#include <QSslCertificate>
 #include <QSslConfiguration>
+#include <QSslSocket>
 #include <QUrlQuery>
 #include <QTemporaryDir>
 #include <QUuid>
@@ -29,6 +31,12 @@ class PortalSessionTest final : public QObject {
     Q_OBJECT
 
 private slots:
+    void initTestCase() {
+        if (!qEnvironmentVariableIsSet("VIAMIORA_TEST_OPENSSL")) return;
+        QVERIFY(QSslSocket::availableBackends().contains(QStringLiteral("openssl")));
+        QVERIFY(QSslSocket::setActiveBackend(QStringLiteral("openssl")));
+    }
+
     void retryAfterHonorsSecondsAndHttpDate() {
         const auto now = QDateTime(QDate(2026, 11, 19), QTime(12, 0), QTimeZone::UTC)
             .toMSecsSinceEpoch();
@@ -373,20 +381,11 @@ private slots:
         PortalConfig config(directory.filePath(QStringLiteral("settings.ini")));
         QVERIFY(config.setPortalUrl(origin));
         QVERIFY(config.setLanguage(QStringLiteral("de")));
-        const auto keychain = qEnvironmentVariable("VIAMIORA_TEST_TRUST_KEYCHAIN");
-        if (keychain.isEmpty()) QSKIP("CI must provide an ephemeral macOS trust keychain");
-        struct RemoveTestCa {
-            QString keychain;
-            ~RemoveTestCa() {
-                QProcess::execute(QStringLiteral("/usr/bin/security"), {
-                    QStringLiteral("delete-certificate"), QStringLiteral("-c"),
-                    QStringLiteral("Viamiora Test CA"), QStringLiteral("-t"), keychain});
-            }
-        } removeTestCa{keychain};
-        QCOMPARE(QProcess::execute(QStringLiteral("/usr/bin/security"), {
-            QStringLiteral("add-trusted-cert"), QStringLiteral("-r"),
-            QStringLiteral("trustRoot"), QStringLiteral("-p"), QStringLiteral("ssl"),
-            QStringLiteral("-k"), keychain, caPath}), 0);
+        auto trustedSsl = QSslConfiguration::defaultConfiguration();
+        const auto testCa = QSslCertificate::fromPath(caPath);
+        QVERIFY(!testCa.isEmpty());
+        trustedSsl.setCaCertificates(testCa);
+        QSslConfiguration::setDefaultConfiguration(trustedSsl);
         BrandingService branding(config);
         branding.load(origin);
         const QUrl expectedLogo(origin + QStringLiteral("/site_media/brand.svg"));

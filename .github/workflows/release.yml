@@ -73,7 +73,7 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DBUILD_TESTING=ON \
             -DVIAMIORA_VERSION="$VERSION"
           cmake --build build --parallel 4
-          VIAMIORA_TEST_TRUST_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db" \
+          VIAMIORA_TEST_OPENSSL=1 DYLD_LIBRARY_PATH="$(brew --prefix openssl@3)/lib" \
             ctest --test-dir build --output-on-failure --parallel 4
       - name: "🔐 Sign, Notarize, and Verify"
         shell: sh
