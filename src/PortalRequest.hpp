@@ -19,6 +19,7 @@ inline bool addPortalCaCertificates(const QString &path) {
 inline QNetworkRequest portalRequest(const QUrl &url, const QByteArray &accept,
                                      const QString &language = {}) {
     QNetworkRequest request(url);
+    request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
     request.setRawHeader("Accept", accept);
     const QStringList candidates = language.isEmpty()
         ? QLocale::system().uiLanguages() : QLocale(language).uiLanguages();
