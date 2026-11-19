@@ -39,7 +39,8 @@ jobs:
         cmake --build build
       test_command: |
         set -eu
-        ctest --test-dir build --output-on-failure
+        VIAMIORA_TEST_TRUST_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db" \
+          ctest --test-dir build --output-on-failure
       package_command: |
         set -eu
         python3 tools/package_macos.py --app build/viamiora.app \

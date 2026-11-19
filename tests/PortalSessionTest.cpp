@@ -373,7 +373,20 @@ private slots:
         PortalConfig config(directory.filePath(QStringLiteral("settings.ini")));
         QVERIFY(config.setPortalUrl(origin));
         QVERIFY(config.setLanguage(QStringLiteral("de")));
-        QVERIFY(addPortalCaCertificates(caPath));
+        const auto keychain = qEnvironmentVariable("VIAMIORA_TEST_TRUST_KEYCHAIN");
+        if (keychain.isEmpty()) QSKIP("CI must provide an ephemeral macOS trust keychain");
+        struct RemoveTestCa {
+            QString keychain;
+            ~RemoveTestCa() {
+                QProcess::execute(QStringLiteral("/usr/bin/security"), {
+                    QStringLiteral("delete-certificate"), QStringLiteral("-c"),
+                    QStringLiteral("Viamiora Test CA"), QStringLiteral("-t"), keychain});
+            }
+        } removeTestCa{keychain};
+        QCOMPARE(QProcess::execute(QStringLiteral("/usr/bin/security"), {
+            QStringLiteral("add-trusted-cert"), QStringLiteral("-r"),
+            QStringLiteral("trustRoot"), QStringLiteral("-p"), QStringLiteral("ssl"),
+            QStringLiteral("-k"), keychain, caPath}), 0);
         BrandingService branding(config);
         branding.load(origin);
         const QUrl expectedLogo(origin + QStringLiteral("/site_media/brand.svg"));

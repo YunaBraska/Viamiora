@@ -6,7 +6,6 @@
 #include "ClipboardService.hpp"
 #include "PortalConfig.hpp"
 #include "PortalSession.hpp"
-#include "PortalRequest.hpp"
 #include "SystemContacts.hpp"
 
 #include <QGuiApplication>
@@ -24,10 +23,6 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("Viamiora"));
     QCoreApplication::setApplicationVersion(QStringLiteral(VIAMIORA_VERSION));
     QQuickStyle::setStyle(QStringLiteral("Basic"));
-#if defined(Q_OS_MACOS)
-    addPortalCaCertificates(QStringLiteral("/etc/ssl/cert.pem"));
-#endif
-
     ContactStore contacts;
     ClipboardService clipboard;
     PortalConfig portal;

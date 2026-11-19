@@ -5,27 +5,12 @@
 #include <QLocale>
 #include <QNetworkRequest>
 #include <QSet>
-#include <QSslCertificate>
 #include <QSysInfo>
-#include <QSslConfiguration>
 #include <algorithm>
-
-inline bool addPortalCaCertificates(const QString &path) {
-    const auto certificates = QSslCertificate::fromPath(path);
-    if (certificates.isEmpty()) return false;
-    auto tls = QSslConfiguration::defaultConfiguration();
-    auto authorities = QSslConfiguration::systemCaCertificates();
-    if (authorities.isEmpty()) authorities = tls.caCertificates();
-    authorities.append(certificates);
-    tls.setCaCertificates(authorities);
-    QSslConfiguration::setDefaultConfiguration(tls);
-    return true;
-}
 
 inline QNetworkRequest portalRequest(const QUrl &url, const QByteArray &accept,
                                      const QString &language = {}) {
     QNetworkRequest request(url);
-    request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
     request.setRawHeader("Accept", accept);
     const QStringList candidates = language.isEmpty()
         ? QLocale::system().uiLanguages() : QLocale(language).uiLanguages();
