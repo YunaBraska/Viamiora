@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+    <key>CFBundleIdentifier</key><string>berlin.yuna.viamiora</string>
+    <key>CFBundleExecutable</key><string>viamiora</string>
+    <key>CFBundleName</key><string>Viamiora</string>
+    <key>CFBundleDisplayName</key><string>Viamiora</string>
+    <key>CFBundleIconFile</key><string>app-icon.icns</string>
+    <key>CFBundleShortVersionString</key><string>${VIAMIORA_VERSION}</string>
+    <key>CFBundleVersion</key><string>${VIAMIORA_BUILD_VERSION}</string>
+    <key>LSMinimumSystemVersion</key><string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
+    <key>NSCalendarsFullAccessUsageDescription</key><string>Show your local calendar events while you plan meetings.</string>
+    <key>NSCalendarsUsageDescription</key><string>Show your local calendar events while you plan meetings.</string>
+    <key>NSContactsUsageDescription</key><string>Find email addresses in your Contacts when you search for meeting participants.</string>
+    <key>NSCameraUsageDescription</key><string>Use your camera when you join a meeting in the app.</string>
+    <key>NSMicrophoneUsageDescription</key><string>Use your microphone when you join a meeting in the app.</string>
+</dict></plist>

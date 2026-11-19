@@ -1,0 +1,63 @@
+name: "🍎 CI · Viamiora macOS Build"
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Tested source revision.
+        required: true
+        type: string
+      version:
+        description: Date SemVer embedded in the build.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: YunaBraska/YunaBraska/.github/workflows/wc_cpp_macos_build.yml@469372e592d87a003dbfae15ef8d50194bcea7e5
+    with:
+      ref: ${{ inputs.ref }}
+      version: ${{ inputs.version }}
+      prepare_command: |
+        set -eu
+        brew install cmake ninja
+        python3 -m venv "$RUNNER_TEMP/aqt"
+        "$RUNNER_TEMP/aqt/bin/python" -m pip install --disable-pip-version-check aqtinstall==3.3.0
+        if ! test -d ".cache/Qt/6.12.1/macos"; then
+          "$RUNNER_TEMP/aqt/bin/aqt" -c tools/aqt-sha1.ini install-qt -O .cache/Qt mac desktop 6.12.1 clang_64 \
+            -m qtwebview --archives qtbase qtdeclarative qttools qttranslations qtsvg
+        fi
+      build_command: |
+        set -eu
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.cache/Qt/6.12.1/macos" \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=14.4 -DBUILD_TESTING=ON \
+          -DVIAMIORA_VERSION="$VERSION"
+        cmake --build build
+      test_command: |
+        set -eu
+        ctest --test-dir build --output-on-failure
+      package_command: |
+        set -eu
+        python3 tools/package_macos.py --app build/viamiora.app \
+          --qt "$GITHUB_WORKSPACE/.cache/Qt/6.12.1/macos" \
+          --output build/package/Viamiora.app --local-test
+        python3 tests/PackageArtifactTest.py build/package/Viamiora.app
+        python3 tools/smoke_macos_bundle.py build/package/Viamiora.app
+        mkdir -p build/release
+        archive_name="Viamiora-${VERSION}-macos.zip"
+        ditto -c -k --keepParent build/package/Viamiora.app "build/release/${archive_name}"
+        (cd build/release && shasum -a 256 "${archive_name}" > "${archive_name}.sha256" && \
+          shasum -a 256 -c "${archive_name}.sha256")
+      cache_paths: |
+        .cache/Qt
+        build/compiler-cache
+      cache_inputs: '["CMakeLists.txt", "tools/aqt-sha1.ini", "tools/package_macos.py"]'
+      package_paths: |
+        build/release/*.zip
+        build/release/*.sha256
+      report_paths: |
+        build/Testing/**

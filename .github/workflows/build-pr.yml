@@ -1,0 +1,36 @@
+name: "🔍 CI · Pull Request"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: viamiora-pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+    steps:
+      - id: version
+        shell: sh
+        run: |
+          set -eu
+          value=$(date -u +%Y.%m.%d | awk -F. '{ printf "%d.%d.%d-SNAPSHOT\n", $1, $2, $3 }')
+          printf 'value=%s\n' "$value" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    uses: ./.github/workflows/macos-build.yml
+    with:
+      ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      version: ${{ needs.version.outputs.value }}
