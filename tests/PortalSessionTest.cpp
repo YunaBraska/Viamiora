@@ -6,6 +6,7 @@
 #include "MeetingInvitation.hpp"
 
 #include <QDateTime>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -380,7 +381,24 @@ private slots:
         QVERIFY(addPortalCaCertificates(caPath));
         BrandingService branding(config);
         branding.load(origin);
-        QTRY_COMPARE_WITH_TIMEOUT(branding.logoUrl(), QUrl(origin + QStringLiteral("/site_media/brand.svg")), 7000);
+        const QUrl expectedLogo(origin + QStringLiteral("/site_media/brand.svg"));
+        QElapsedTimer brandingWait;
+        brandingWait.start();
+        while (branding.logoUrl() != expectedLogo && brandingWait.elapsed() < 7000)
+            QTest::qWait(50);
+        if (branding.logoUrl() != expectedLogo) {
+            QNetworkAccessManager probe;
+            auto *reply = probe.get(portalRequest(QUrl(origin + QStringLiteral("/accounts/login/")),
+                                                  "text/html", QStringLiteral("de")));
+            QSignalSpy finished(reply, &QNetworkReply::finished);
+            const bool completed = finished.wait(8000);
+            const auto diagnostic = QStringLiteral("branding logo missing; probe finished=%1, error=%2, HTTP=%3, server=%4")
+                .arg(completed)
+                .arg(reply->errorString())
+                .arg(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt())
+                .arg(QString::fromUtf8(server.readAllStandardError().right(500)));
+            QFAIL(qPrintable(diagnostic));
+        }
         QCOMPARE(branding.accent(), QStringLiteral("#113355"));
         QFile brandingCount(directory.filePath(QStringLiteral("branding-login-count")));
         QVERIFY(brandingCount.open(QIODevice::ReadOnly));
