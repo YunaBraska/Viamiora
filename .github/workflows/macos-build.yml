@@ -39,17 +39,7 @@ jobs:
         cmake --build build
       test_command: |
         set -eu
-        keychain="$RUNNER_TEMP/viamiora-test.keychain-db"
-        password=$(uuidgen)
-        cleanup() {
-          security delete-keychain "$keychain" >/dev/null 2>&1 || true
-        }
-        trap cleanup EXIT
-        security create-keychain -p "$password" "$keychain"
-        security set-keychain-settings -lut 900 "$keychain"
-        security unlock-keychain -p "$password" "$keychain"
-        security list-keychains -d user -s "$keychain"
-        VIAMIORA_TEST_TRUST_KEYCHAIN="$keychain" ctest --test-dir build --output-on-failure
+        ctest --test-dir build --output-on-failure
       package_command: |
         set -eu
         python3 tools/package_macos.py --app build/viamiora.app \

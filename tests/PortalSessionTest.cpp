@@ -299,21 +299,17 @@ private slots:
     }
 
     void localHttpsJourneySignsInBooksInvitesSharesAndSignsOut() {
+        const auto certificatePath = qEnvironmentVariable("VIAMIORA_TEST_TRUSTED_CERTIFICATE");
+        const auto keyPath = qEnvironmentVariable("VIAMIORA_TEST_TRUSTED_KEY");
+        if (certificatePath.isEmpty() || keyPath.isEmpty()) {
+            QSKIP("Set VIAMIORA_TEST_TRUSTED_CERTIFICATE and VIAMIORA_TEST_TRUSTED_KEY to run the portal journey.");
+        }
+        QVERIFY(QFile::exists(certificatePath));
+        QVERIFY(QFile::exists(keyPath));
         QCoreApplication::setApplicationVersion(QStringLiteral(VIAMIORA_VERSION));
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
-        const auto certificatePath = directory.filePath(QStringLiteral("certificate.pem"));
-        const auto keyPath = directory.filePath(QStringLiteral("key.pem"));
         const auto logPath = directory.filePath(QStringLiteral("invitations.json"));
-        QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
-            QStringLiteral("req"), QStringLiteral("-x509"), QStringLiteral("-newkey"),
-            QStringLiteral("rsa:2048"), QStringLiteral("-nodes"), QStringLiteral("-keyout"),
-            keyPath, QStringLiteral("-out"), certificatePath, QStringLiteral("-days"),
-            QStringLiteral("1"), QStringLiteral("-subj"), QStringLiteral("/CN=127.0.0.1"),
-            QStringLiteral("-addext"), QStringLiteral("subjectAltName=IP:127.0.0.1"),
-            QStringLiteral("-addext"),
-            QStringLiteral("basicConstraints=critical,CA:TRUE"), QStringLiteral("-addext"),
-            QStringLiteral("keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign")}), 0);
         const auto start = QDateTime(QDate::currentDate().addDays(2), QTime(10, 0),
                                      QTimeZone::systemTimeZone());
         const auto end = start.addSecs(3600);
@@ -342,16 +338,6 @@ private slots:
         PortalConfig config(directory.filePath(QStringLiteral("settings.ini")));
         QVERIFY(config.setPortalUrl(origin));
         QVERIFY(config.setLanguage(QStringLiteral("de")));
-        const auto keychain = qEnvironmentVariable("VIAMIORA_TEST_TRUST_KEYCHAIN");
-        if (keychain.isEmpty()) QSKIP("CI must provide an ephemeral macOS trust keychain");
-        QProcess trustCertificate;
-        trustCertificate.start(QStringLiteral("/usr/bin/security"), {
-            QStringLiteral("add-trusted-cert"), QStringLiteral("-r"),
-            QStringLiteral("trustRoot"), QStringLiteral("-p"), QStringLiteral("ssl"),
-            QStringLiteral("-k"), keychain, certificatePath});
-        QVERIFY(trustCertificate.waitForStarted(3000));
-        QVERIFY(trustCertificate.waitForFinished(3000));
-        QCOMPARE(trustCertificate.exitCode(), 0);
         BrandingService branding(config);
         branding.load(origin);
         const QUrl expectedLogo(origin + QStringLiteral("/site_media/brand.svg"));
