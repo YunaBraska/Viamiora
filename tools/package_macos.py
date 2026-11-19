@@ -48,7 +48,7 @@ def main() -> int:
                      "use --local-test for a local smoke test")
     with (source / "Contents/Info.plist").open("rb") as stream:
         info = plistlib.load(stream)
-    if info.get("CFBundleIdentifier") != "dev.yunabraska.viamiora":
+    if info.get("CFBundleIdentifier") != "berlin.yuna.viamiora":
         parser.error("the source bundle has an unexpected identifier")
     version = run(str(qt / "bin/qtpaths"), "--qt-version").strip()
     if not re.fullmatch(r"\d+\.\d+\.\d+", version):

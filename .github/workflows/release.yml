@@ -1,61 +1,100 @@
-name: Signed macOS candidate
+# yuna-release: true
+name: "🏷️ CD · Release"
 
 on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  actions: read
+  contents: write
+
+concurrency:
+  group: viamiora-release-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   QT_VERSION: 6.12.1
 
 jobs:
-  package:
+  version:
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+      exists: ${{ steps.availability.outputs.exists }}
+    steps:
+      - id: version
+        shell: sh
+        run: |
+          set -eu
+          value=$(date -u +%Y.%m.%d | awk -F. '{ printf "%d.%d.%d\\n", $1, $2, $3 }')
+          printf 'value=%s\n' "$value" >> "$GITHUB_OUTPUT"
+      - id: availability
+        shell: sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -eu
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            printf 'exists=true\n' >> "$GITHUB_OUTPUT"
+          else
+            printf 'exists=false\n' >> "$GITHUB_OUTPUT"
+          fi
+
+  package:
+    needs: version
+    if: needs.version.outputs.exists != 'true'
     runs-on: macos-15
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v7
+      - name: "🧑‍💻 Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-      - name: Install build tools and Qt
+      - name: "🛠️ Install Build Tools"
+        shell: sh
         run: |
+          set -eu
           brew install cmake ninja openssl@3
-          python -m pip install aqtinstall==3.3.0
+          python3 -m pip install --disable-pip-version-check aqtinstall==3.3.0
           aqt -c tools/aqt-sha1.ini install-qt -O "$RUNNER_TEMP/Qt" mac desktop "$QT_VERSION" clang_64 \
             -m qtwebview --archives qtbase qtdeclarative qttools qttranslations qtsvg
-      - name: Build and test universal app
+      - name: "🔨 Build and Test Universal App"
+        shell: sh
+        env:
+          VERSION: ${{ needs.version.outputs.value }}
         run: |
+          set -eu
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/Qt/$QT_VERSION/macos" \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=14.4 \
-            -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DBUILD_TESTING=ON
+            -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DBUILD_TESTING=ON \
+            -DVIAMIORA_VERSION="$VERSION"
           cmake --build build --parallel 4
           VIAMIORA_TEST_OPENSSL=1 DYLD_LIBRARY_PATH="$(brew --prefix openssl@3)/lib" \
             ctest --test-dir build --output-on-failure --parallel 4
-      - name: Sign, notarize, and inspect
-        shell: bash
+      - name: "🔐 Sign, Notarize, and Verify"
+        shell: sh
         env:
           CERTIFICATE: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
           CERTIFICATE_PASSWORD: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
           NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}
           NOTARY_KEY_ID: ${{ secrets.MACOS_NOTARY_KEY_ID }}
           NOTARY_ISSUER_ID: ${{ secrets.MACOS_NOTARY_ISSUER_ID }}
+          VERSION: ${{ needs.version.outputs.value }}
         run: |
-          set -euo pipefail
+          set -eu
           test -n "$CERTIFICATE" && test -n "$CERTIFICATE_PASSWORD"
           test -n "$NOTARY_KEY" && test -n "$NOTARY_KEY_ID" && test -n "$NOTARY_ISSUER_ID"
           umask 077
           keychain="$RUNNER_TEMP/viamiora-release.keychain-db"
+          password=$(uuidgen)
           cleanup() {
             rm -f "$RUNNER_TEMP/viamiora-release.p12" "$RUNNER_TEMP/viamiora-release.p8"
             security delete-keychain "$keychain" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
-          password="$(uuidgen)"
           security create-keychain -p "$password" "$keychain"
           security set-keychain-settings -lut 14400 "$keychain"
           security unlock-keychain -p "$password" "$keychain"
@@ -65,27 +104,27 @@ jobs:
           security import "$RUNNER_TEMP/viamiora-release.p12" -k "$keychain" \
             -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
-          identity="$(security find-identity -v -p codesigning "$keychain" | \
-            awk -F '"' '/Developer ID Application:/ { print $2; exit }')"
+          identity=$(security find-identity -v -p codesigning "$keychain" | \
+            awk -F '"' '/Developer ID Application:/ { print $2; exit }')
           test -n "$identity"
           printf '%s' "$NOTARY_KEY" > "$RUNNER_TEMP/viamiora-release.p8"
           xcrun notarytool store-credentials viamiora-release --keychain "$keychain" \
             --key "$RUNNER_TEMP/viamiora-release.p8" \
             --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID"
 
-          python tools/package_macos.py --app build/viamiora.app \
+          python3 tools/package_macos.py --app build/viamiora.app \
             --qt "$RUNNER_TEMP/Qt/$QT_VERSION/macos" \
             --output build/package/Viamiora.app --identity "$identity" --timestamp
-          python tools/check_macos_bundle.py build/package/Viamiora.app \
+          python3 tools/check_macos_bundle.py build/package/Viamiora.app \
             --require-signature --require-distribution --require-universal
-          python tools/smoke_macos_bundle.py build/package/Viamiora.app
+          python3 tools/smoke_macos_bundle.py build/package/Viamiora.app
 
           mkdir -p build/release
           ditto -c -k --keepParent build/package/Viamiora.app build/release/notary-upload.zip
           xcrun notarytool submit build/release/notary-upload.zip \
             --keychain-profile viamiora-release --keychain "$keychain" --wait \
             --output-format json > build/release/notary-result.json
-          python - <<'PY'
+          python3 - <<'PY'
           import json
           from pathlib import Path
           status = json.loads(Path('build/release/notary-result.json').read_text()).get('status')
@@ -95,21 +134,32 @@ jobs:
           xcrun stapler staple build/package/Viamiora.app
           xcrun stapler validate build/package/Viamiora.app
           spctl --assess --type execute --verbose build/package/Viamiora.app
-          python tools/check_macos_bundle.py build/package/Viamiora.app \
+          python3 tools/check_macos_bundle.py build/package/Viamiora.app \
             --require-signature --require-distribution --require-universal
-          version="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' \
-            build/package/Viamiora.app/Contents/Info.plist)"
-          archive_name="Viamiora-${version}-macos-universal.zip"
-          ditto -c -k --keepParent build/package/Viamiora.app "build/release/$archive_name"
+          archive_name="Viamiora-${VERSION}-macos-universal.zip"
+          ditto -c -k --keepParent build/package/Viamiora.app "build/release/${archive_name}"
           (cd build/release && shasum -a 256 "$archive_name" > "${archive_name}.sha256" && \
             shasum -a 256 -c "${archive_name}.sha256")
-          rm build/release/notary-upload.zip
-          rm build/release/notary-result.json
-      - uses: actions/upload-artifact@v7
+          rm build/release/notary-upload.zip build/release/notary-result.json
+      - name: "📦 Upload Release Assets"
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: viamiora-macos-candidate-${{ github.sha }}
+          name: release-macos-universal
           path: |
             build/release/*.zip
             build/release/*.sha256
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
+
+  release:
+    needs:
+      - version
+      - package
+    if: needs.version.outputs.exists != 'true'
+    uses: YunaBraska/YunaBraska/.github/workflows/wc_github_create_release.yml@469372e592d87a003dbfae15ef8d50194bcea7e5
+    with:
+      artifact_name: release-macos-universal
+      artifact_path: dist
+      commit_sha: ${{ github.sha }}
+      run_id: ${{ github.run_id }}
+      version: ${{ needs.version.outputs.value }}

@@ -1,0 +1,8 @@
+title: Viamiora
+product: Viamiora
+description: An independent macOS client for Mividas meeting portals.
+repository: https://github.com/YunaBraska/Viamiora
+support: https://github.com/YunaBraska/Viamiora/issues
+accent: "#7651c8"
+accent_soft: "#f0eaff"
+color_scheme: light

@@ -1,0 +1,27 @@
+name: "📖 CD · Product Pages"
+
+on:
+  pull_request:
+    paths:
+      - README.md
+      - docs/**
+      - .github/workflows/product-pages.yml
+  push:
+    branches:
+      - main
+    paths:
+      - README.md
+      - docs/**
+      - .github/workflows/product-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  pages:
+    uses: YunaBraska/YunaBraska/.github/workflows/wc_product_pages.yml@469372e592d87a003dbfae15ef8d50194bcea7e5
+    with:
+      publish: ${{ github.event_name != 'pull_request' }}

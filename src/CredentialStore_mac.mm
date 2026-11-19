@@ -7,7 +7,7 @@
 
 namespace {
 NSString *serviceName(const QString &origin) {
-    return [NSString stringWithFormat:@"dev.yunabraska.viamiora.portal.%@", origin.toNSString()];
+    return [NSString stringWithFormat:@"berlin.yuna.viamiora.portal.%@", origin.toNSString()];
 }
 NSDictionary *baseQuery(const QString &origin, const QString &username = {}) {
     NSMutableDictionary *query = [@{

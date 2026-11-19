@@ -55,15 +55,16 @@ def main() -> int:
     executable = contents / "MacOS" / safe_executable
     minimum = info.get("LSMinimumSystemVersion", "")
     errors = []
-    if info.get("CFBundleIdentifier") != "dev.yunabraska.viamiora":
-        errors.append("bundle identifier is not dev.yunabraska.viamiora")
+    if info.get("CFBundleIdentifier") != "berlin.yuna.viamiora":
+        errors.append("bundle identifier is not berlin.yuna.viamiora")
     if not safe_executable or Path(safe_executable).name != safe_executable:
         errors.append("Info.plist has no valid CFBundleExecutable")
     display_version = info.get("CFBundleShortVersionString", "")
     try:
-        year, month, day = (int(part) for part in display_version.split("."))
+        build_version = display_version.removesuffix("-SNAPSHOT")
+        year, month, day = (int(part) for part in build_version.split("."))
         datetime.date(year, month, day)
-        if info.get("CFBundleVersion") != display_version:
+        if info.get("CFBundleVersion") != build_version:
             errors.append("bundle build version differs from its date version")
     except (ValueError, AttributeError):
         errors.append("app version is not a valid year.month.day date")

@@ -15,6 +15,19 @@ checker = root / "tools/check_macos_bundle.py"
 with tempfile.TemporaryDirectory(prefix="viamiora-package-test-") as directory:
     broken = Path(directory) / "Viamiora.app"
     shutil.copytree(bundle, broken, symlinks=True)
+    info_path = broken / "Contents/Info.plist"
+    with info_path.open("rb") as stream:
+        info = plistlib.load(stream)
+    info["CFBundleShortVersionString"] = f"{info['CFBundleVersion']}-SNAPSHOT"
+    with info_path.open("wb") as stream:
+        plistlib.dump(info, stream)
+    result = subprocess.run([sys.executable, str(checker), str(broken)],
+                            capture_output=True, text=True, check=False)
+    if result.returncode:
+        raise SystemExit(f"Snapshot package was rejected: {result.stderr}")
+    info["CFBundleShortVersionString"] = info["CFBundleVersion"]
+    with info_path.open("wb") as stream:
+        plistlib.dump(info, stream)
     notices = broken / "Contents/Resources/qt-sbom"
     qtbase = next(notices.glob("qtbase-*.source.spdx.gz"))
     qtbase.write_bytes(qtbase.read_bytes()[:16])
@@ -22,7 +35,6 @@ with tempfile.TemporaryDirectory(prefix="viamiora-package-test-") as directory:
                             capture_output=True, text=True, check=False)
     if result.returncode == 0 or "invalid Qt source attribution: qtbase" not in result.stderr:
         raise SystemExit(f"Corrupt Qt notice was accepted: {result.stderr}")
-    info_path = broken / "Contents/Info.plist"
     with info_path.open("rb") as stream:
         info = plistlib.load(stream)
     info["CFBundleIdentifier"] = "example.invalid.other"
@@ -30,7 +42,7 @@ with tempfile.TemporaryDirectory(prefix="viamiora-package-test-") as directory:
         plistlib.dump(info, stream)
     result = subprocess.run([sys.executable, str(checker), str(broken)],
                             capture_output=True, text=True, check=False)
-    if result.returncode == 0 or "bundle identifier is not dev.yunabraska.viamiora" not in result.stderr:
+    if result.returncode == 0 or "bundle identifier is not berlin.yuna.viamiora" not in result.stderr:
         raise SystemExit(f"Wrong app identity was accepted: {result.stderr}")
     fake_qt = Path(directory) / "wrong-qt/bin"
     fake_qt.mkdir(parents=True)
@@ -44,4 +56,4 @@ with tempfile.TemporaryDirectory(prefix="viamiora-package-test-") as directory:
     ], capture_output=True, text=True, check=False)
     if result.returncode == 0 or "different Qt version" not in result.stderr:
         raise SystemExit(f"Mismatched Qt build was accepted: {result.stderr}")
-print("Corrupt attribution, wrong app identity, and mismatched Qt rejected.")
+print("Snapshot packages are accepted. Corrupt attribution, wrong app identity, and mismatched Qt are rejected.")
