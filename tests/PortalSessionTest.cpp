@@ -13,9 +13,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QProcess>
-#include <QSslCertificate>
-#include <QSslConfiguration>
-#include <QSslSocket>
 #include <QUrlQuery>
 #include <QTemporaryDir>
 #include <QUuid>
@@ -31,12 +28,6 @@ class PortalSessionTest final : public QObject {
     Q_OBJECT
 
 private slots:
-    void initTestCase() {
-        if (!qEnvironmentVariableIsSet("VIAMIORA_TEST_OPENSSL")) return;
-        QVERIFY(QSslSocket::availableBackends().contains(QStringLiteral("openssl")));
-        QVERIFY(QSslSocket::setActiveBackend(QStringLiteral("openssl")));
-    }
-
     void retryAfterHonorsSecondsAndHttpDate() {
         const auto now = QDateTime(QDate(2026, 11, 19), QTime(12, 0), QTimeZone::UTC)
             .toMSecsSinceEpoch();
@@ -323,12 +314,6 @@ private slots:
             QStringLiteral("-addext"),
             QStringLiteral("basicConstraints=critical,CA:TRUE"), QStringLiteral("-addext"),
             QStringLiteral("keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign")}), 0);
-        const auto originalSsl = QSslConfiguration::defaultConfiguration();
-        struct RestoreSsl {
-            QSslConfiguration original;
-            ~RestoreSsl() { QSslConfiguration::setDefaultConfiguration(original); }
-        } restore{originalSsl};
-
         const auto start = QDateTime(QDate::currentDate().addDays(2), QTime(10, 0),
                                      QTimeZone::systemTimeZone());
         const auto end = start.addSecs(3600);
@@ -357,11 +342,16 @@ private slots:
         PortalConfig config(directory.filePath(QStringLiteral("settings.ini")));
         QVERIFY(config.setPortalUrl(origin));
         QVERIFY(config.setLanguage(QStringLiteral("de")));
-        auto trustedSsl = QSslConfiguration::defaultConfiguration();
-        const auto testCa = QSslCertificate::fromPath(certificatePath);
-        QVERIFY(!testCa.isEmpty());
-        trustedSsl.setCaCertificates(testCa);
-        QSslConfiguration::setDefaultConfiguration(trustedSsl);
+        const auto keychain = qEnvironmentVariable("VIAMIORA_TEST_TRUST_KEYCHAIN");
+        if (keychain.isEmpty()) QSKIP("CI must provide an ephemeral macOS trust keychain");
+        QProcess trustCertificate;
+        trustCertificate.start(QStringLiteral("/usr/bin/security"), {
+            QStringLiteral("add-trusted-cert"), QStringLiteral("-r"),
+            QStringLiteral("trustRoot"), QStringLiteral("-p"), QStringLiteral("ssl"),
+            QStringLiteral("-k"), keychain, certificatePath});
+        QVERIFY(trustCertificate.waitForStarted(3000));
+        QVERIFY(trustCertificate.waitForFinished(3000));
+        QCOMPARE(trustCertificate.exitCode(), 0);
         BrandingService branding(config);
         branding.load(origin);
         const QUrl expectedLogo(origin + QStringLiteral("/site_media/brand.svg"));

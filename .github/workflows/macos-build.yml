@@ -23,7 +23,7 @@ jobs:
       version: ${{ inputs.version }}
       prepare_command: |
         set -eu
-        brew install cmake ninja openssl@3
+        brew install cmake ninja
         python3 -m venv "$RUNNER_TEMP/aqt"
         "$RUNNER_TEMP/aqt/bin/python" -m pip install --disable-pip-version-check aqtinstall==3.3.0
         if ! test -d ".cache/Qt/6.12.1/macos"; then
@@ -39,8 +39,17 @@ jobs:
         cmake --build build
       test_command: |
         set -eu
-        VIAMIORA_TEST_OPENSSL=1 DYLD_LIBRARY_PATH="$(brew --prefix openssl@3)/lib" \
-          ctest --test-dir build --output-on-failure
+        keychain="$RUNNER_TEMP/viamiora-test.keychain-db"
+        password=$(uuidgen)
+        cleanup() {
+          security delete-keychain "$keychain" >/dev/null 2>&1 || true
+        }
+        trap cleanup EXIT
+        security create-keychain -p "$password" "$keychain"
+        security set-keychain-settings -lut 900 "$keychain"
+        security unlock-keychain -p "$password" "$keychain"
+        security list-keychains -d user -s "$keychain"
+        VIAMIORA_TEST_TRUST_KEYCHAIN="$keychain" ctest --test-dir build --output-on-failure
       package_command: |
         set -eu
         python3 tools/package_macos.py --app build/viamiora.app \
