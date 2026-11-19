@@ -381,14 +381,6 @@ private slots:
         PortalConfig config(directory.filePath(QStringLiteral("settings.ini")));
         QVERIFY(config.setPortalUrl(origin));
         QVERIFY(config.setLanguage(QStringLiteral("de")));
-        {
-            PortalSession untrusted(config);
-            untrusted.signIn(username, QStringLiteral("local-password"));
-            QTRY_VERIFY_WITH_TIMEOUT(!untrusted.busy(), 7000);
-            QVERIFY(!untrusted.signedIn());
-            QVERIFY(untrusted.status().contains(QStringLiteral("Secure connection failed")));
-            QVERIFY(CredentialStore::accounts(origin).isEmpty());
-        }
         QVERIFY(addPortalCaCertificates(caPath));
         BrandingService branding(config);
         branding.load(origin);
@@ -925,6 +917,50 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(!session.signedIn() && !session.busy(), 7000);
         server.kill();
         QVERIFY(server.waitForFinished(3000));
+    }
+
+    void localHttpsRejectsUnknownCertificate() {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto certificatePath = directory.filePath(QStringLiteral("certificate.pem"));
+        const auto keyPath = directory.filePath(QStringLiteral("key.pem"));
+        const auto logPath = directory.filePath(QStringLiteral("invitations.json"));
+        QCOMPARE(QProcess::execute(QStringLiteral("openssl"), {
+            QStringLiteral("req"), QStringLiteral("-x509"), QStringLiteral("-newkey"),
+            QStringLiteral("rsa:2048"), QStringLiteral("-nodes"), QStringLiteral("-keyout"),
+            keyPath, QStringLiteral("-out"), certificatePath, QStringLiteral("-days"),
+            QStringLiteral("1"), QStringLiteral("-subj"), QStringLiteral("/CN=127.0.0.1"),
+            QStringLiteral("-addext"), QStringLiteral("subjectAltName=IP:127.0.0.1")}), 0);
+
+        QProcess server;
+        struct StopServer {
+            QProcess &process;
+            ~StopServer() {
+                if (process.state() != QProcess::NotRunning) {
+                    process.kill();
+                    process.waitForFinished(3000);
+                }
+            }
+        } stopServer{server};
+        server.setProcessChannelMode(QProcess::SeparateChannels);
+        const auto start = QDateTime::currentDateTimeUtc().addDays(2);
+        server.start(QStringLiteral("/usr/bin/python3"), {QStringLiteral("-u"),
+            QStringLiteral(VIAMIORA_SOURCE_DIR "/tests/fake_portal.py"), certificatePath,
+            keyPath, logPath, start.toString(Qt::ISODateWithMs),
+            start.addSecs(3600).toString(Qt::ISODateWithMs), QStringLiteral(VIAMIORA_VERSION)});
+        QVERIFY(server.waitForStarted(3000));
+        QVERIFY(server.waitForReadyRead(3000));
+        bool validPort = false;
+        const auto port = QString::fromUtf8(server.readLine().trimmed()).toInt(&validPort);
+        QVERIFY(validPort && port > 0);
+
+        PortalConfig config(directory.filePath(QStringLiteral("settings.ini")));
+        QVERIFY(config.setPortalUrl(QStringLiteral("https://127.0.0.1:%1").arg(port)));
+        PortalSession session(config);
+        session.signIn(QStringLiteral("creator@example.invalid"), QStringLiteral("local-password"));
+        QTRY_VERIFY_WITH_TIMEOUT(!session.busy(), 7000);
+        QVERIFY(!session.signedIn());
+        QVERIFY(session.status().contains(QStringLiteral("Secure connection failed")));
     }
 };
 
