@@ -1,48 +1,44 @@
 ---
 layout: default
-title: Meetings without the browser clutter
-description: A native macOS workspace for Mividas meetings, schedules and invitations.
+title: Meetings, in one place
+description: Viamiora brings Mividas meetings, scheduling and recognised calendar calls into one macOS app.
 ---
 
-<section class="hero">
+<section class="hero landing-hero">
   <div class="hero-copy">
-    <p class="eyebrow">Independent macOS meeting client</p>
-    <h1>Keep the meeting work in one calm place.</h1>
-    <p class="lead">Viamiora gives Mividas meeting portals a native macOS home for schedules, details, invitations and joining calls. You choose the portal. Your credentials stay in your Mac's Keychain.</p>
-    <p class="actions"><a class="button" href="documentation.html">Explore Viamiora</a><a class="button secondary" href="install.html">Get the app</a></p>
+    <p class="eyebrow">Viamiora for macOS</p>
+    <h1>Your meeting day, without the detours.</h1>
+    <p class="lead">See portal meetings and recognised calendar calls together. Plan a time, invite people and keep the right link close when it is time to join.</p>
+    <p class="actions"><a class="button" href="#preview">See the app</a><a class="button secondary" href="install.html">Release status</a></p>
   </div>
-  <figure class="hero-art">
-    <img src="https://raw.githubusercontent.com/YunaBraska/Viamiora/main/assets/app-icon.png" alt="Viamiora application icon">
-    <figcaption>One focused workspace for the meetings already in your portal and calendar.</figcaption>
+  <figure class="hero-art showcase-shot">
+    <a href="{{ '/assets/screenshots/overview.png' | relative_url }}" aria-label="View the illustrative meeting overview at full size"><img src="{{ '/assets/screenshots/overview.png' | relative_url }}" width="1200" height="840" fetchpriority="high" alt="Illustrative Viamiora overview showing a week of meetings, a search field, an active call and upcoming portal and calendar calls"></a>
+    <figcaption>One overview for your calls. Illustrative preview with fictional test data.</figcaption>
   </figure>
 </section>
 
-<section class="section">
-  <h2>Plan, invite and join without losing context.</h2>
-  <p class="section-intro">The overview brings together portal meetings and recognised calendar calls. Details keep joining links, PINs, attendees and the portal actions in reach.</p>
-  <div class="feature-grid">
-    <article class="feature"><h3>See the day clearly</h3><p>Browse upcoming meetings, narrow them by date or search, and keep calendar calls alongside portal meetings without duplicating records.</p></article>
-    <article class="feature"><h3>Book with confidence</h3><p>Choose a meeting type, time and participants. Viamiora confirms the portal result before it treats a booking as complete.</p></article>
-    <article class="feature"><h3>Join with a fallback</h3><p>Open calls in the embedded meeting view when it works for the portal. A system-browser fallback stays available when it does not.</p></article>
+<section class="section landing-intro" id="preview">
+  <p class="eyebrow">From plan to call</p>
+  <h2>The details you need, where you need them.</h2>
+  <p class="section-intro">Choose a date and time in one view. Open a meeting to find its participant and moderator links, PINs and invitations. The call itself opens inside Viamiora, with the browser available when needed.</p>
+  <div class="screenshot-grid showcase-grid">
+    <figure class="showcase-shot"><a href="{{ '/assets/screenshots/schedule.png' | relative_url }}" aria-label="View the illustrative meeting planner at full size"><img src="{{ '/assets/screenshots/schedule.png' | relative_url }}" width="1200" height="840" loading="lazy" alt="Illustrative meeting planner with a weekly date picker, start and end times, duration choices, PINs and invitee fields"></a><figcaption><strong>Plan in one view.</strong> Pick a time, check your calendar and add invitees.</figcaption></figure>
+    <figure class="showcase-shot"><a href="{{ '/assets/screenshots/details.png' | relative_url }}" aria-label="View the illustrative meeting details at full size"><img src="{{ '/assets/screenshots/details.png' | relative_url }}" width="1200" height="840" loading="lazy" alt="Illustrative meeting details with participant and moderator links, PINs, and invitation lists"></a><figcaption><strong>Keep the right link close.</strong> Copy guest or moderator details without leaving the app.</figcaption></figure>
+  </div>
+  <p class="preview-note">These are interface previews rendered from a synthetic test fixture. Portal branding and available actions depend on the portal you connect.</p>
+</section>
+
+<section class="section landing-benefits">
+  <p class="eyebrow">Made for the ordinary journey</p>
+  <h2>Less switching. More clarity.</h2>
+  <div class="journey-grid">
+    <article><span class="journey-number">01</span><h3>Find your next call</h3><p>Search or choose a day. Portal meetings and recognised calendar links appear in the same list.</p></article>
+    <article><span class="journey-number">02</span><h3>Plan with context</h3><p>See your calendar availability while you choose a time. Contacts help with addresses when you grant access.</p></article>
+    <article><span class="journey-number">03</span><h3>Join your way</h3><p>Open the call inside the app. If a portal does not work there, open that meeting in your browser.</p></article>
   </div>
 </section>
 
-<section class="section">
-  <h2>Native where it makes meetings easier.</h2>
-  <p class="section-intro">Calendar availability can help choose a free time. Contacts can suggest participant addresses. Both permissions are optional and requested only when you use the related feature.</p>
-  <div class="feature-grid">
-    <article class="feature"><h3>Keep credentials protected</h3><p>Each portal and account pair has its own macOS Keychain entry. Meeting cookies remain in memory for the active session.</p></article>
-    <article class="feature"><h3>Respect the portal you chose</h3><p>Viamiora connects only to the HTTPS portal address you enter. It does not guess a host from an email address.</p></article>
-    <article class="feature"><h3>Stay in control</h3><p>Use the portal directly whenever a portal-specific action is unclear. Viamiora never retries an ambiguous booking that could create a duplicate meeting.</p></article>
-  </div>
-</section>
-
-<section class="section">
-  <h2>Availability</h2>
-  <p class="section-intro">Viamiora is currently being qualified for macOS 14.4 and later. A signed direct download and Homebrew cask will appear after the first notarized release passes its installed-app checks.</p>
-  <div class="install-options">
-    <article class="install-option"><h3>Signed download</h3><p>Coming after the first Developer ID signed and notarized release.</p></article>
-    <article class="install-option"><h3>Homebrew</h3><p>The cask will be available after that same public release.</p></article>
-    <article class="install-option"><h3>Mac App Store</h3><p>Not planned for the current direct-distribution build.</p></article>
-  </div>
+<section class="landing-close">
+  <div><p class="eyebrow">Independent by design</p><h2>Use the portal you trust.</h2><p>Enter your HTTPS Mividas portal address. Viamiora keeps saved logins in macOS Keychain and requests Calendar or Contacts access only when you use those features.</p></div>
+  <div class="landing-close-action"><a class="button" href="documentation.html">Explore Viamiora</a><a href="install.html">Availability and installation ↗</a></div>
 </section>

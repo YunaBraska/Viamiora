@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Viamiora showcase fixture</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1f2937; background: #eaf0f6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .window { width: 1200px; height: 840px; overflow: hidden; background: #fff; }
+    .titlebar { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; background: #f7f9fb; border-bottom: 1px solid #e1e6ed; color: #657287; font-size: 13px; }
+    .lights { display: flex; gap: 8px; }
+    .lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff6058; box-shadow: inset 0 0 0 1px #eb554d; }
+    .lights i:nth-child(2) { background: #ffbd2e; box-shadow: inset 0 0 0 1px #e5aa28; }
+    .lights i:nth-child(3) { background: #28c840; box-shadow: inset 0 0 0 1px #27b53b; }
+    .body { display: grid; grid-template-columns: 196px 1fr; height: 792px; }
+    aside { display: flex; flex-direction: column; gap: 8px; padding: 24px 16px 20px; background: #f7f8fa; border-right: 1px solid #e4e7ec; font-size: 14px; }
+    .new { padding: 12px 14px; border-radius: 8px; background: #315da8; color: #fff; font-weight: 650; text-align: center; margin-bottom: 12px; }
+    .nav { padding: 11px 13px; border-radius: 8px; }
+    .nav span { display: inline-block; width: 28px; color: #667085; }
+    .nav.active { background: #eaf0fb; color: #1765c1; font-weight: 650; }
+    .nav.active span { color: #1765c1; }
+    .spacer { flex: 1; }
+    .signout { color: #b42318; }
+    .portal { color: #1765c1; }
+    main { background: linear-gradient(135deg, rgba(244,247,251,.38), rgba(255,255,255,.96) 60%), #fff; overflow: hidden; }
+    .content { width: 744px; margin: 0 auto; padding: 28px 0 40px; }
+    h1 { margin: 0 0 22px; font-size: 30px; line-height: 1.15; letter-spacing: -.035em; font-weight: 680; }
+    h2 { margin: 0 0 12px; font-size: 19px; letter-spacing: -.025em; font-weight: 660; }
+    p { margin: 0; }
+    .muted { color: #667085; }
+    .small { font-size: 13px; }
+    .blue { color: #1765c1; }
+    .accent { color: #315da8; }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .between { justify-content: space-between; }
+    .month { text-align: center; margin: -2px 0 12px; color: #667085; font-weight: 570; }
+    .week { display: grid; grid-template-columns: 36px repeat(7, 1fr) 36px; gap: 6px; align-items: stretch; margin-bottom: 16px; }
+    .arrow, .day { border-radius: 9px; text-align: center; border: 1px solid transparent; }
+    .arrow { display: grid; place-items: center; font-size: 23px; color: #667085; }
+    .day { padding: 8px 2px 5px; min-height: 66px; }
+    .day strong, .day span { display: block; }
+    .day strong { font-size: 12px; font-weight: 540; color: #667085; }
+    .day span { font-size: 20px; line-height: 1.35; font-weight: 570; }
+    .day.active { background: #eaf0fb; border-color: #315da8; }
+    .day.active strong, .day.active span { color: #315da8; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: #315da8; margin: 1px auto 0; }
+    .search { border: 1px solid #d8dee7; border-radius: 7px; color: #8b95a5; padding: 11px 14px; margin-bottom: 16px; font-size: 14px; }
+    .panel { border: 1px solid #e1e6ed; border-radius: 12px; padding: 18px; background: #fff; margin-bottom: 13px; }
+    .panel.now { background: #f8fbff; }
+    .meeting { display: flex; align-items: center; gap: 12px; min-height: 39px; border-top: 1px solid #edf0f4; font-size: 14px; }
+    .meeting:first-of-type { border-top: 0; }
+    .meeting .time { color: #667085; width: 206px; flex: none; font-size: 13px; }
+    .meeting .name { flex: 1; min-width: 0; font-weight: 570; }
+    .meeting .own { color: #315da8; }
+    .meeting .play { color: #1765c1; font-size: 16px; }
+    .meeting .details { color: #1765c1; font-size: 13px; }
+    .faint { color: #a1a9b7; }
+    .field { border: 1px solid #d8dee7; border-radius: 7px; min-height: 39px; padding: 10px 12px; background: #fff; font-size: 14px; }
+    .label { font-size: 14px; font-weight: 590; margin: 0 0 8px; }
+    .divider { border: 0; border-top: 1px solid #e4e7ec; margin: 18px 0; }
+    .datehead { margin: 4px 0 12px; font-size: 18px; font-weight: 650; }
+    .choice { border: 1px solid #e1e6ed; border-radius: 7px; padding: 9px 12px; color: #354052; font-size: 14px; }
+    .choice.selected { background: #eaf0fb; border-color: #315da8; color: #315da8; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 20px; background: #eaf0fb; color: #315da8; font-size: 13px; }
+    .check { color: #157347; font-size: 14px; }
+    .copy { color: #1765c1; font-size: 17px; }
+    .formgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .action { border-radius: 8px; background: #315da8; color: #fff; padding: 12px; text-align: center; font-weight: 650; margin-top: 16px; }
+    .back { display: inline-block; margin-bottom: 18px; color: #1765c1; font-size: 14px; }
+    .detailtitle { margin-bottom: 8px; }
+    .detailcard { border: 1px solid #e1e6ed; border-radius: 12px; padding: 20px; background: #fff; margin-top: 20px; }
+    .detailrow { padding: 14px 0; border-bottom: 1px solid #edf0f4; }
+    .detailrow:last-child { border-bottom: 0; }
+    .detailrow .label { margin-bottom: 6px; }
+    .link { color: #1765c1; font-size: 14px; }
+    .people { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .person { padding: 7px 10px; background: #f1f4f8; border-radius: 7px; color: #455265; font-size: 13px; }
+    .view { display: none; }
+    body[data-view="overview"] .overview,
+    body[data-view="schedule"] .schedule,
+    body[data-view="details"] .details-view { display: block; }
+  </style>
+</head>
+<body>
+<div class="window">
+  <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><span>Viamiora</span><span style="width:52px"></span></div>
+  <div class="body">
+    <aside>
+      <div class="new">+ &nbsp;New meeting</div>
+      <div class="nav nav-overview"><span>◫</span>Overview</div>
+      <div class="nav nav-settings"><span>⚙</span>Settings</div>
+      <div class="nav"><span>ⓘ</span>About</div>
+      <div class="spacer"></div>
+      <div class="nav signout"><span>↪</span>Sign out</div>
+      <div class="nav portal"><span>↗</span>Open portal</div>
+    </aside>
+    <main>
+      <div class="content view overview">
+        <h1>Meetings</h1>
+        <div class="month">November 2026</div>
+        <div class="week"><div class="arrow">‹</div>
+          <div class="day"><strong>MON</strong><span>23</span><div class="dot"></div></div>
+          <div class="day"><strong>TUE</strong><span>24</span><div class="dot"></div></div>
+          <div class="day active"><strong>WED</strong><span>25</span><div class="dot"></div></div>
+          <div class="day"><strong>THU</strong><span>26</span><div class="dot"></div></div>
+          <div class="day"><strong>FRI</strong><span>27</span><div class="dot"></div></div>
+          <div class="day"><strong>SAT</strong><span>28</span></div>
+          <div class="day"><strong>SUN</strong><span>29</span></div><div class="arrow">›</div>
+        </div>
+        <div class="search">⌕ &nbsp; Search meetings and rooms</div>
+        <div class="panel now"><h2>Scheduled now</h2>
+          <div class="meeting"><span class="time">Wed, 25 Nov · 10:00–11:00</span><span class="name">Design review</span><span class="own" title="You can manage this meeting">👤</span><span class="play">▶</span><span class="details">Details</span></div>
+        </div>
+        <div class="panel"><h2>Upcoming</h2>
+          <div class="meeting"><span class="time">Wed, 25 Nov · 14:00–15:00</span><span class="name">Product planning</span><span class="own">👤</span><span class="play">▶</span><span class="details">Details</span></div>
+          <div class="meeting"><span class="time">Thu, 26 Nov · 09:30–10:00</span><span class="name">Weekly sync</span><span class="faint">▦</span><span class="play">▶</span><span class="details">Details</span></div>
+          <div class="meeting"><span class="time">Fri, 27 Nov · 13:00–14:00</span><span class="name">Project catch-up</span><span class="play">▶</span><span class="details">Details</span></div>
+        </div>
+        <div class="panel"><h2>Open an invitation</h2><div class="field faint">Paste an HTTPS invitation link</div></div>
+      </div>
+      <div class="content view schedule">
+        <h1>Plan a meeting</h1>
+        <div class="panel">
+          <p class="label">Meeting title</p><div class="field">Product planning</div>
+          <div class="datehead" style="margin-top:23px">Date and time</div>
+          <div class="row between" style="margin-bottom:12px"><span class="arrow">‹</span><strong>November 2026</strong><span class="choice">Today</span><span class="arrow">›</span></div>
+          <div class="week"><div class="arrow">‹</div>
+            <div class="day"><strong>MON</strong><span>23</span><div class="dot"></div></div>
+            <div class="day"><strong>TUE</strong><span>24</span><div class="dot"></div></div>
+            <div class="day active"><strong>WED</strong><span>25</span><div class="dot"></div></div>
+            <div class="day"><strong>THU</strong><span>26</span><div class="dot"></div></div>
+            <div class="day"><strong>FRI</strong><span>27</span><div class="dot"></div></div>
+            <div class="day"><strong>SAT</strong><span>28</span></div>
+            <div class="day"><strong>SUN</strong><span>29</span></div><div class="arrow">›</div>
+          </div>
+          <div class="formgrid"><div><p class="label muted">Starts</p><div class="field">14:00 &nbsp;⌄</div></div><div><p class="label muted">Ends</p><div class="field">15:00 &nbsp;⌄</div></div></div>
+          <div class="row" style="margin-top:12px"><span class="small muted">Duration</span><span class="choice">30 min</span><span class="choice selected">1 hour</span><span class="choice">2 hours</span></div>
+          <p class="check" style="margin-top:16px">✓ &nbsp;Free in your calendar</p>
+          <hr class="divider">
+          <div class="row between"><span class="label">Meeting PIN</span><span class="row accent">5782 &nbsp;<span class="copy">⧉</span></span></div>
+          <div class="row between"><span class="label">Moderator PIN</span><span class="row accent">0558 &nbsp;<span class="copy">⧉</span></span></div>
+          <hr class="divider">
+          <div class="formgrid"><div><p class="label">Invitees</p><div class="field">leo@example.invalid</div></div><div><p class="label">Moderators</p><div class="field">mara@example.invalid</div></div></div>
+        </div>
+        <div class="action">Create meeting</div>
+      </div>
+      <div class="content view details-view">
+        <span class="back">‹ Overview</span>
+        <h1 class="detailtitle">Product planning</h1>
+        <p class="muted">Wed, 25 Nov · 14:00–15:00</p>
+        <div class="detailcard">
+          <p class="muted">Review the next product milestone and agree on owners for the open work.</p>
+          <div class="detailrow"><p class="label">Participant link</p><div class="row between"><span class="link">https://vc.example.invalid/webapp/#/?conference=246810&amp;pin=5782</span><span class="copy">⧉</span></div></div>
+          <div class="detailrow"><div class="row between"><span class="muted">Participant PIN</span><span class="row">5782 &nbsp;<span class="copy">⧉</span></span></div></div>
+          <div class="detailrow"><p class="label">Moderator link</p><div class="row between"><span class="link">https://vc.example.invalid/webapp/#/?conference=246810&amp;pin=0558</span><span class="copy">⧉</span></div></div>
+          <div class="detailrow"><div class="row between"><span class="muted">Moderator PIN</span><span class="row">0558 &nbsp;<span class="copy">⧉</span></span></div></div>
+          <div class="detailrow"><p class="label">Moderators</p><div class="people"><span class="person">mara@example.invalid</span></div></div>
+          <div class="detailrow"><p class="label">Participants</p><div class="people"><span class="person">leo@example.invalid</span><span class="person">sam@example.invalid</span></div></div>
+          <div class="link" style="margin-top:16px">+ Invite people</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  const view = new URLSearchParams(location.search).get("view") || "overview";
+  if (!["overview", "schedule", "details"].includes(view)) throw new Error("Unknown showcase view");
+  document.body.dataset.view = view;
+  document.querySelector(view === "schedule" ? ".new" : ".nav-overview").classList.add("active");
+</script>
+</body>
+</html>
