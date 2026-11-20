@@ -82,13 +82,16 @@ pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 .help-document th, .help-document td { padding: 11px 13px; border: 1px solid #dfe6ef; text-align: left; vertical-align: top; }
 .help-document th { background: var(--accent-soft); }
 .help-document :not(pre) > code { padding: 2px 5px; background: var(--accent-soft); color: #203046; font-size: 0.9em; }
-.doc-shot { max-width: 900px; overflow: hidden; margin: 22px 0 38px; border: 1px solid #d9e1eb; border-radius: 12px; background: #fff; box-shadow: 0 10px 28px rgba(30, 58, 86, .08); }
+.doc-shot { max-width: 640px; overflow: hidden; margin: 22px 0 38px; border: 1px solid #d9e1eb; border-radius: 12px; background: #fff; box-shadow: 0 10px 28px rgba(30, 58, 86, .08); }
+.doc-shot > a { position: relative; display: block; }
+.doc-shot > a::after { content: "↗"; position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(255, 255, 255, .94); color: #1765c1; box-shadow: 0 1px 5px rgba(30, 58, 86, .12); }
 .doc-shot a:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 .doc-shot img { display: block; width: 100%; height: auto; }
 .doc-shot figcaption { padding: 13px 17px; color: #516174; font-size: .9rem; }
 .doc-shot figcaption a { font-weight: 650; }
 .help-document .doc-shot img { margin: 0; border: 0; }
-.documentation-preview { margin-top: 0; }
+.documentation-preview { margin-top: 0; margin-bottom: 0; }
+.documentation-preview + .section { padding-top: 28px; }
 .site-footer { padding: 28px 0; border-top: 1px solid #dfe6ef; color: #64748b; font-size: 0.88rem; }
 .footer-content span:last-child { display: flex; gap: 16px; }
 .site-footer a { color: inherit; }

@@ -7,12 +7,12 @@ description: Learn how Viamiora connects a Mividas portal with your macOS calend
 <header class="page-heading">
   <p class="eyebrow">Documentation</p>
   <h1>From portal sign-in to the next meeting.</h1>
-  <p>Viamiora is designed around the ordinary meeting journey. Start with the portal, then use the calendar, contacts and call view only where they help.</p>
+  <p>Start with your portal address, then find, plan and join calls in one place. Calendar and Contacts help when you choose to connect them.</p>
 </header>
 
 <figure class="doc-shot documentation-preview">
-  <a href="{{ '/assets/screenshots/overview.png' | relative_url }}" aria-label="View the illustrative meeting overview at full size"><img src="{{ '/assets/screenshots/overview.png' | relative_url }}" width="1200" height="840" loading="lazy" alt="Viamiora overview with a week of meetings, an active call, upcoming portal and calendar calls, and search"></a>
-  <figcaption>The meeting overview. Illustrative preview with fictional data. <a href="{{ '/help/index.html#find-a-meeting' | relative_url }}">Learn how to find a call</a>.</figcaption>
+  <a href="{{ '/assets/guides/sign-in.png' | relative_url }}" target="_blank" rel="noopener" aria-label="Open the sign-in guide image at full size in a new tab"><img src="{{ '/assets/guides/sign-in.png' | relative_url }}" width="640" height="470" loading="lazy" alt="Focused sign-in view with username, password and portal URL fields"></a>
+  <figcaption>Start with your portal address. Illustrative guide with fictional data. <a href="{{ '/help/index.html#add-a-portal' | relative_url }}">Set up a portal</a>.</figcaption>
 </figure>
 
 <section class="section">

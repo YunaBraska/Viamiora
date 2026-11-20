@@ -7,59 +7,54 @@ description: Use a Mividas meeting portal from a focused macOS workspace.
 
 # Viamiora help
 
-Viamiora is a native workspace for an HTTPS Mividas meeting portal. It keeps portal meetings and recognised calendar calls together without replacing the portal's authority.
-
-The images below are illustrative previews with fictional data. Available actions and branding depend on the portal you connect.
+Sign in, find a call, plan a meeting and join it from one place. These guide images use fictional data. Your portal may offer different actions and branding.
 
 ## Add a portal
 
 <a id="add-a-portal"></a>
 
-On the sign-in screen, enter your username, password and the full HTTPS address of your Mividas portal. Viamiora does not guess a portal from an email address. A saved portal and username pair uses its own macOS Keychain entry.
+Enter your username, password and full HTTPS portal address. Saved accounts use macOS Keychain.
 
-If the portal uses a sign-in method Viamiora cannot safely complete, use the browser option. Do not bypass a certificate warning. Viamiora blocks an untrusted certificate instead of sending your credentials.
+If your portal needs another sign-in method, open it in your browser. Never continue past a certificate warning.
+
+<figure class="doc-shot">
+  <a href="{{ '/assets/guides/sign-in.png' | relative_url }}" target="_blank" rel="noopener" aria-label="Open the sign-in guide image at full size in a new tab"><img src="{{ '/assets/guides/sign-in.png' | relative_url }}" width="640" height="470" loading="lazy" alt="Sign-in fields in order: username, password and HTTPS portal URL"></a>
+  <figcaption>Enter the account and portal address together.</figcaption>
+</figure>
 
 ## Find a meeting
 
 <a id="find-a-meeting"></a>
 
-The overview shows upcoming portal meetings and calendar entries that contain a recognised meeting link. Use the day filter and search to narrow the list. Viamiora keeps ambiguous portal and calendar entries separate rather than merging uncertain data.
-
-Calendar access is optional. When you allow it, Viamiora can show recognised calls and use busy times for booking suggestions. It never changes a calendar event.
+Choose a day or search to find portal meetings and calendar calls with a meeting link. Calendar access is optional.
 
 <figure class="doc-shot">
-  <a href="{{ '/assets/screenshots/overview.png' | relative_url }}" aria-label="View the meeting overview preview at full size"><img src="{{ '/assets/screenshots/overview.png' | relative_url }}" width="1200" height="840" loading="lazy" alt="Example overview with a week selector, meeting search, an active call and upcoming meetings"></a>
-  <figcaption>Choose a day or search across recognised calls.</figcaption>
+  <a href="{{ '/assets/guides/find.png' | relative_url }}" target="_blank" rel="noopener" aria-label="Open the meeting search guide image at full size in a new tab"><img src="{{ '/assets/guides/find.png' | relative_url }}" width="640" height="470" loading="lazy" alt="Focused meeting list with a selected day, search field and upcoming calls"></a>
+  <figcaption>Choose a day, then search or open a result.</figcaption>
 </figure>
 
 ## Book a meeting
 
 <a id="book-a-meeting"></a>
 
-Open **New meeting**, choose the meeting type, title, date, time and participants. Viamiora can suggest a free daytime hour when Calendar access is available. It submits the portal's own booking form and checks the resulting portal state before treating the booking as complete.
-
-If the result is ambiguous, inspect the portal before trying again. Viamiora deliberately does not repeat a request that might create a duplicate meeting.
+Open **New meeting** and set the title, date, time and invitees. With Calendar access, **Next free hour** can suggest a slot. If creating a meeting gives no clear confirmation, check the portal before trying again.
 
 <figure class="doc-shot">
-  <a href="{{ '/assets/screenshots/schedule.png' | relative_url }}" aria-label="View the meeting planner preview at full size"><img src="{{ '/assets/screenshots/schedule.png' | relative_url }}" width="1200" height="840" loading="lazy" alt="Example meeting planner with a date picker, times, duration, calendar availability, two PINs and invitee fields"></a>
-  <figcaption>Set the time and invitees together before creating a meeting.</figcaption>
+  <a href="{{ '/assets/guides/plan.png' | relative_url }}" target="_blank" rel="noopener" aria-label="Open the meeting planning guide image at full size in a new tab"><img src="{{ '/assets/guides/plan.png' | relative_url }}" width="640" height="540" loading="lazy" alt="Focused booking view with title, date, time, calendar availability, two PINs and participant fields"></a>
+  <figcaption>Set the time and invitees before creating a meeting.</figcaption>
 </figure>
 
 ## Contacts and invitations
 
-Viamiora can suggest email addresses from macOS Contacts while you add participants. Contacts remain in the system store. Manually entered addresses are kept locally only to make repeat invitations easier. You can remove saved portal accounts and their local settings at any time.
-
-Meeting details show participant and moderator links and PINs when the portal provides them. They also show the invitation lists and let you change them when the portal allows it.
+Contacts can suggest addresses when you allow access. Meeting details show separate links and PINs for participants and moderators when the portal provides them. You can change invitations when the portal allows it.
 
 <figure class="doc-shot">
-  <a href="{{ '/assets/screenshots/details.png' | relative_url }}" aria-label="View the meeting details preview at full size"><img src="{{ '/assets/screenshots/details.png' | relative_url }}" width="1200" height="840" loading="lazy" alt="Example meeting details with separate participant and moderator links, PINs, and invitation lists"></a>
-  <figcaption>Keep the right joining link and invitation list at hand.</figcaption>
+  <a href="{{ '/assets/guides/details.png' | relative_url }}" target="_blank" rel="noopener" aria-label="Open the meeting details guide image at full size in a new tab"><img src="{{ '/assets/guides/details.png' | relative_url }}" width="640" height="470" loading="lazy" alt="Focused meeting details with separate participant and moderator links, PINs, copy controls and invitation lists"></a>
+  <figcaption>Copy the right link and PIN for each role.</figcaption>
 </figure>
 
 ## Join a call
 
 <a id="join-a-call"></a>
 
-Open a meeting, then choose **Join**. Viamiora uses an embedded meeting view where the portal supports it. The browser fallback remains available for portal-specific flows, unavailable media or a failed embedded view.
-
-Camera and microphone access are requested by macOS only when the call needs them. Viamiora does not record meeting media.
+Choose **▶** beside a meeting to join. The call opens inside Viamiora. If that fails, open it in your browser. macOS asks for camera and microphone access when needed.
