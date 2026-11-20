@@ -10,6 +10,11 @@ description: Learn how Viamiora connects a Mividas portal with your macOS calend
   <p>Viamiora is designed around the ordinary meeting journey. Start with the portal, then use the calendar, contacts and call view only where they help.</p>
 </header>
 
+<figure class="doc-shot documentation-preview">
+  <a href="{{ '/assets/screenshots/overview.png' | relative_url }}" aria-label="View the illustrative meeting overview at full size"><img src="{{ '/assets/screenshots/overview.png' | relative_url }}" width="1200" height="840" loading="lazy" alt="Viamiora overview with a week of meetings, an active call, upcoming portal and calendar calls, and search"></a>
+  <figcaption>The meeting overview. Illustrative preview with fictional data. <a href="{{ '/help/index.html#find-a-meeting' | relative_url }}">Learn how to find a call</a>.</figcaption>
+</figure>
+
 <section class="section">
   <ul class="doc-list">
     <li><a href="{{ '/help/index.html#add-a-portal' | relative_url }}">Add a portal</a><p>Enter the HTTPS address you use for Mividas and sign in with the account for that portal.</p></li>
