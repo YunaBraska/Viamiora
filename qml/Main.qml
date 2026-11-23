@@ -310,8 +310,6 @@ ApplicationWindow {
         id: entry
         property string role: ""
         property var selectedEmails: []
-        readonly property string addresses: selectedEmails.join(", ")
-        readonly property bool hasAddresses: selectedEmails.length > 0 || addressText.text.trim() !== ""
         readonly property var suggestions: {
             const query = addressText.text.trim()
             if (appWindow.activeAddressRole !== entry.role || query.length < 2) return []
@@ -413,10 +411,8 @@ ApplicationWindow {
                 appWindow.lastSearchedQuery = ""
                 contactSearch.restart()
             }
-            onAccepted: if (!entry.commitPending()) {
-                if (appWindow.detailsVisible) appWindow.shareInviteError = qsTr("Check the email addresses.")
-                else appWindow.scheduleError = qsTr("Check the email addresses.")
-            }
+            onAccepted: if (!entry.commitPending())
+                appWindow.scheduleError = qsTr("Check the email addresses.")
             onActiveFocusChanged: if (!activeFocus) hideSuggestions.restart()
             Keys.onEscapePressed: appWindow.activeAddressRole = ""
         }
@@ -475,9 +471,6 @@ ApplicationWindow {
     property int pendingJoinMeetingId: 0
     property string shareCopyStatus: ""
     property var calendarDetail: ({})
-    readonly property bool detailsVisible: section === Main.View.MeetingDetails
-    property bool shareInviteOpen: false
-    property string shareInviteError: ""
     property bool scheduleCompleted: false
     property bool passwordEdited: false
     property bool loginTouched: false
@@ -548,8 +541,6 @@ ApplicationWindow {
         sharePortalUrl = item.url ? appWindow.portalConfig.portalUrl + item.url : ""
         shareMeetingId = item.id
         shareCopyStatus = ""
-        shareInviteOpen = false
-        shareInviteError = ""
         section = Main.View.MeetingDetails
         appWindow.portalSession.fetchMeetingLinks(item.id)
     }
@@ -806,7 +797,7 @@ ApplicationWindow {
         id: contactSearch
         interval: 300
         repeat: false
-        onTriggered: if ((appWindow.section === Main.View.Schedule || appWindow.detailsVisible) && appWindow.contactQuery.length >= 2) {
+        onTriggered: if (appWindow.section === Main.View.Schedule && appWindow.contactQuery.length >= 2) {
             appWindow.lastSearchedQuery = appWindow.contactQuery
             appWindow.systemContacts.search(appWindow.contactQuery)
         }
@@ -950,10 +941,6 @@ ApplicationWindow {
         if (section !== Main.View.CalendarDetails) calendarDetail = ({})
         if (section !== Main.View.MeetingDetails && shareMeetingId > 0) {
             pendingJoinMeetingId = 0
-            shareInvitees.clear()
-            shareModerators.clear()
-            shareInviteOpen = false
-            shareInviteError = ""
             appWindow.portalSession.cancelMeetingLinks()
             shareMeetingId = 0
         }
@@ -1568,8 +1555,8 @@ ApplicationWindow {
                                 ToolButton { text: "⧉"; Accessible.name: qsTr("Copy moderator PIN"); ToolTip.visible: hovered; ToolTip.text: Accessible.name; onClicked: appWindow.clipboardService.copy(appWindow.scheduleModeratorPin) }
                             }
                             Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: appWindow.line; Layout.topMargin: 4 }
-                            AddressEntry { id: inviteeAddresses; role: "Invitees"; Layout.fillWidth: true }
-                            AddressEntry { id: moderatorAddresses; role: "Moderators"; Layout.fillWidth: true }
+                            AddressEntry { id: inviteeAddresses; role: qsTr("Invitees"); Layout.fillWidth: true }
+                            AddressEntry { id: moderatorAddresses; role: qsTr("Moderators"); Layout.fillWidth: true }
                             SelectableText { visible: appWindow.contactStore.error !== ""; text: appWindow.contactStore.error; color: appWindow.errorColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                         }
                     }
@@ -1928,40 +1915,9 @@ ApplicationWindow {
                         }
                     }
                     LinkAction {
-                        visible: appWindow.portalSession.meetingLinks.canChange === true
-                        text: appWindow.shareInviteOpen ? qsTr("Hide invitation") : qsTr("+ Invite people")
-                        onClicked: appWindow.shareInviteOpen = !appWindow.shareInviteOpen
-                    }
-                    ColumnLayout {
-                        visible: appWindow.shareInviteOpen && appWindow.portalSession.meetingLinks.canChange === true
-                        Layout.fillWidth: true
-                        spacing: 10
-                        AddressEntry { id: shareInvitees; role: qsTr("Invitees"); Layout.fillWidth: true }
-                        AddressEntry { id: shareModerators; role: qsTr("Moderators"); Layout.fillWidth: true }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            SelectableText { visible: appWindow.shareInviteError !== ""; text: appWindow.shareInviteError; color: appWindow.errorColor; Layout.fillWidth: true }
-                            Item { Layout.fillWidth: true; visible: appWindow.shareInviteError === "" }
-                            Button {
-                                text: appWindow.portalSession.inviting ? qsTr("Sending…") : qsTr("Send invitations")
-                                enabled: !appWindow.portalSession.inviting && !appWindow.portalSession.linksBusy &&
-                                         (shareInvitees.hasAddresses || shareModerators.hasAddresses)
-                                onClicked: {
-                                    if (!shareInvitees.commitPending() || !shareModerators.commitPending()) {
-                                        appWindow.shareInviteError = qsTr("Check the email addresses.")
-                                        return
-                                    }
-                                    appWindow.shareInviteError = ""
-                                    if (appWindow.portalSession.inviteToMeeting(appWindow.shareMeetingId,
-                                                                      shareInvitees.selectedEmails,
-                                                                      shareModerators.selectedEmails)) {
-                                        shareInvitees.clear()
-                                        shareModerators.clear()
-                                        appWindow.shareInviteOpen = false
-                                    }
-                                }
-                            }
-                        }
+                        visible: (appWindow.portalSession.meetingLinks.detailsUrl || "") !== ""
+                        text: qsTr("↗  Invitations in portal")
+                        onClicked: Qt.openUrlExternally(appWindow.portalSession.meetingLinks.detailsUrl)
                     }
                     RowLayout {
                         visible: appWindow.shareMeetingId === appWindow.portalSession.invitationMeetingId &&

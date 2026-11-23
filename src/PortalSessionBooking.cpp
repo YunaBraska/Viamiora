@@ -187,7 +187,7 @@ void PortalSession::sendNextInvitation() {
         m_inviting = false;
         m_invitationStatus = m_invitationFailures == 0
             ? tr("Invitations submitted.")
-            : tr("Some invitations could not be confirmed.");
+            : tr("Some invitations could not be sent here. Add them in the portal.");
         emit changed();
         if (m_detailMeetingId == m_invitationMeetingId) fetchMeetingLinks(m_invitationMeetingId);
         return;
