@@ -88,8 +88,6 @@ public:
     Q_INVOKABLE void inspectBookingType(int type);
     Q_INVOKABLE void fetchMeetingLinks(int id);
     Q_INVOKABLE void resolveCalendarMatches(const QVariantList &calendarEvents);
-    Q_INVOKABLE bool inviteToMeeting(int id, const QStringList &invitees,
-                                    const QStringList &moderators);
     Q_INVOKABLE bool removeInvitation(int meetingId, int inviteId);
     Q_INVOKABLE QUrl calendarInvite(int id);
     Q_INVOKABLE void cancelMeetingLinks();

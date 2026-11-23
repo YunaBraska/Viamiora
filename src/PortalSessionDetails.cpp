@@ -111,7 +111,6 @@ void PortalSession::fetchMeetingLinks(int id) {
             return digits.match(pin).hasMatch() ? pin : QString();
         };
         const auto detailPath = meeting.value(QStringLiteral("url")).toString();
-        static const QRegularExpression meetingPath(QStringLiteral(R"(^/meeting/[0-9]+/$)"));
         const auto participantPin = pinFromLink(participant);
         const auto moderatorPin = pinFromLink(moderator);
         const auto portalParticipantPin = numericPin(meeting.value(QStringLiteral("pin")));
@@ -202,48 +201,13 @@ void PortalSession::fetchMeetingLinks(int id) {
                                      {QStringLiteral("moderators"), moderators},
                                      {QStringLiteral("canChange"), inviteListReliable &&
                                          meeting.value(QStringLiteral("can_change")).toBool()},
-                                     {QStringLiteral("detailsUrl"), meetingPath.match(detailPath).hasMatch()
+                                     {QStringLiteral("detailsUrl"), detailPath == QStringLiteral("/meeting/%1/").arg(id)
                                          ? m_portalUrl + detailPath : QString()}};
         m_detailMeetingId = id;
         if (participant.isEmpty() && moderator.isEmpty())
             m_linkStatus = tr("This meeting has no shareable links in the portal response.");
         emit linksChanged();
     });
-}
-
-bool PortalSession::inviteToMeeting(int id, const QStringList &invitees,
-                                    const QStringList &moderators) {
-    if (m_inviting) return false;
-    m_invitationMeetingId = id;
-    if (!m_signedIn || m_linksBusy || m_creatingMeeting || id <= 0 ||
-        id != m_detailMeetingId || !m_meetingLinks.value(QStringLiteral("canChange")).toBool()) {
-        m_invitationStatus = tr("This meeting cannot be changed here.");
-        emit changed();
-        return false;
-    }
-    const auto recipients = MeetingInvitation::normalizeRecipients(invitees, moderators, {});
-    if (!recipients) {
-        m_invitationStatus = tr("Check the email addresses.");
-        emit changed();
-        return false;
-    }
-    QSet<QString> existing;
-    for (const auto &role : {QStringLiteral("participants"), QStringLiteral("moderators")})
-        for (const auto &entry : m_meetingLinks.value(role).toList())
-            existing.insert(entry.toMap().value(QStringLiteral("email")).toString().toCaseFolded());
-    QStringList newInvitees;
-    QStringList newModerators;
-    for (const auto &email : recipients->moderators)
-        if (!existing.contains(email.toCaseFolded())) newModerators.append(email);
-    for (const auto &email : recipients->invitees)
-        if (!existing.contains(email.toCaseFolded())) newInvitees.append(email);
-    if (newInvitees.isEmpty() && newModerators.isEmpty()) {
-        m_invitationStatus = tr("Everyone selected is already invited.");
-        emit changed();
-        return false;
-    }
-    sendInvitations(id, newInvitees, newModerators);
-    return true;
 }
 
 bool PortalSession::removeInvitation(int meetingId, int inviteId) {

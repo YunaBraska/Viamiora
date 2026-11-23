@@ -281,6 +281,8 @@ private slots:
         QCOMPARE(query.queryItemValue(QStringLiteral("message")), QStringLiteral("<p>Join &amp; ready</p>"));
         QCOMPARE(query.queryItemValue(QStringLiteral("csrfmiddlewaretoken")), QStringLiteral("test-csrf"));
         QVERIFY(MeetingInvitation::subjectFromForm(QByteArrayLiteral("<html>Sign in</html>")).isEmpty());
+        QVERIFY(MeetingInvitation::subjectFromForm(QByteArrayLiteral(
+            "<form><input name='message_title' required></form>")).isEmpty());
         QVERIFY(MeetingInvitation::bodyFromForm(QByteArrayLiteral("<html>Sign in</html>")).isEmpty());
     }
 
@@ -599,9 +601,20 @@ private slots:
         QCOMPARE(session.meetingLinks().value(QStringLiteral("description")).toString(),
                  QStringLiteral("Agenda\nReview the next release."));
         QCOMPARE(session.meetingLinks().value(QStringLiteral("sip")).toString(), QStringLiteral("sip:555123@example.invalid"));
-        QCOMPARE(session.meetingLinks().value(QStringLiteral("participants")).toList().size(), 0);
+        QCOMPARE(session.meetingLinks().value(QStringLiteral("participants")).toList().size(), 1);
         QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 2);
         QVERIFY(session.meetingLinks().value(QStringLiteral("canChange")).toBool());
+        QCOMPARE(session.meetingLinks().value(QStringLiteral("detailsUrl")).toString(),
+                 origin + QStringLiteral("/meeting/321/"));
+        QFile wrongDetailUrl(directory.filePath(QStringLiteral("wrong-detail-url")));
+        QVERIFY(wrongDetailUrl.open(QIODevice::WriteOnly));
+        wrongDetailUrl.close();
+        session.fetchMeetingLinks(321);
+        QTRY_VERIFY_WITH_TIMEOUT(!session.linksBusy(), 7000);
+        QVERIFY(session.meetingLinks().value(QStringLiteral("detailsUrl")).toString().isEmpty());
+        QVERIFY(wrongDetailUrl.remove());
+        session.fetchMeetingLinks(321);
+        QTRY_VERIFY_WITH_TIMEOUT(!session.linksBusy(), 7000);
 
         QFile slowDetail(directory.filePath(QStringLiteral("slow-detail")));
         QVERIFY(slowDetail.open(QIODevice::WriteOnly));
@@ -633,25 +646,6 @@ private slots:
         QVERIFY(wrongModeratorPin.remove());
         QVERIFY(portalGuestLink.remove());
 
-        QVERIFY(!session.inviteToMeeting(321, {QStringLiteral("GUEST@example.invalid")},
-                                         {username}));
-        QVERIFY(session.invitationStatus().contains(QStringLiteral("already invited")));
-        QVERIFY(session.inviteToMeeting(321,
-            {QStringLiteral("guest@example.invalid"), QStringLiteral("newguest@example.invalid"),
-             QStringLiteral("NEW&mod@example.invalid")},
-            {username, QStringLiteral("new&mod@example.invalid")}));
-        QTRY_VERIFY_WITH_TIMEOUT(!session.inviting() && !session.linksBusy(), 7000);
-        QVERIFY(log.open(QIODevice::ReadOnly));
-        const auto additionalInvites = QJsonDocument::fromJson(log.readAll()).object();
-        log.close();
-        QCOMPARE(additionalInvites.value(QStringLiteral("participant")).toArray().size(), 1);
-        QCOMPARE(additionalInvites.value(QStringLiteral("participant")).toArray().at(0).toString(),
-                 QStringLiteral("newguest@example.invalid"));
-        QCOMPARE(additionalInvites.value(QStringLiteral("moderator")).toArray().size(), 1);
-        QCOMPARE(additionalInvites.value(QStringLiteral("moderator")).toArray().at(0).toString(),
-                 QStringLiteral("new&mod@example.invalid"));
-        QCOMPARE(session.meetingLinks().value(QStringLiteral("participants")).toList().size(), 1);
-        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 3);
         const int participantId = session.meetingLinks().value(QStringLiteral("participants"))
             .toList().first().toMap().value(QStringLiteral("id")).toInt();
         QVERIFY(participantId > 0);
@@ -673,7 +667,7 @@ private slots:
         QVERIFY(session.removeInvitation(321, moderatorId));
         QTRY_VERIFY_WITH_TIMEOUT(!session.inviting(), 7000);
         QVERIFY(session.invitationStatus().contains(QStringLiteral("could not be removed")));
-        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 3);
+        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 2);
         QVERIFY(removalCount.open(QIODevice::ReadOnly));
         QCOMPARE(removalCount.readAll(), QByteArray("1"));
         removalCount.close();
@@ -684,7 +678,7 @@ private slots:
         QVERIFY(session.removeInvitation(321, moderatorId));
         QTRY_VERIFY_WITH_TIMEOUT(!session.inviting(), 7000);
         QVERIFY(session.invitationStatus().contains(QStringLiteral("could not be removed")));
-        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 3);
+        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 2);
         QVERIFY(removalCount.open(QIODevice::ReadOnly));
         QCOMPARE(removalCount.readAll(), QByteArray("2"));
         removalCount.close();
@@ -695,7 +689,7 @@ private slots:
         QVERIFY(session.removeInvitation(321, moderatorId));
         QTRY_VERIFY_WITH_TIMEOUT(!session.inviting() && !session.linksBusy(), 7000);
         QVERIFY(session.invitationStatus().contains(QStringLiteral("could not be confirmed")));
-        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 3);
+        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 2);
         QVERIFY(removalCount.open(QIODevice::ReadOnly));
         QCOMPARE(removalCount.readAll(), QByteArray("3"));
         removalCount.close();
@@ -706,7 +700,7 @@ private slots:
         QVERIFY(session.removeInvitation(321, moderatorId));
         QTRY_VERIFY_WITH_TIMEOUT(!session.inviting() && !session.linksBusy(), 7000);
         QVERIFY(session.invitationStatus().contains(QStringLiteral("Invitation removed")));
-        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 2);
+        QCOMPARE(session.meetingLinks().value(QStringLiteral("moderators")).toList().size(), 1);
         QVERIFY(inlineRemoval.remove());
         QFile crossOriginRemoval(directory.filePath(QStringLiteral("cross-origin-removal-form")));
         QVERIFY(crossOriginRemoval.open(QIODevice::WriteOnly));
@@ -720,19 +714,6 @@ private slots:
         QCOMPARE(removalCount.readAll(), QByteArray("4"));
         removalCount.close();
         QVERIFY(crossOriginRemoval.remove());
-        QVERIFY(log.open(QIODevice::ReadOnly));
-        const auto sentBeforeBrokenForm = log.readAll();
-        log.close();
-        QFile brokenInvitationForm(directory.filePath(QStringLiteral("broken-invitation-form")));
-        QVERIFY(brokenInvitationForm.open(QIODevice::WriteOnly));
-        brokenInvitationForm.close();
-        QVERIFY(session.inviteToMeeting(321, {QStringLiteral("unsent@example.invalid")}, {}));
-        QTRY_VERIFY_WITH_TIMEOUT(!session.inviting(), 7000);
-        QVERIFY(session.invitationStatus().contains(QStringLiteral("could not be confirmed")));
-        QVERIFY(log.open(QIODevice::ReadOnly));
-        QCOMPARE(log.readAll(), sentBeforeBrokenForm);
-        log.close();
-        QVERIFY(brokenInvitationForm.remove());
         QFile malformedDetail(directory.filePath(QStringLiteral("malformed-detail-json")));
         QVERIFY(malformedDetail.open(QIODevice::WriteOnly));
         malformedDetail.close();
@@ -745,14 +726,12 @@ private slots:
         QVERIFY(malformedDetail.remove());
         session.fetchMeetingLinks(321);
         QTRY_VERIFY_WITH_TIMEOUT(!session.linksBusy(), 7000);
-        QVERIFY(!session.inviteToMeeting(999, {QStringLiteral("other@example.invalid")}, {}));
         QFile unsupportedInvites(directory.filePath(QStringLiteral("unsupported-invites")));
         QVERIFY(unsupportedInvites.open(QIODevice::WriteOnly));
         unsupportedInvites.close();
         session.fetchMeetingLinks(321);
         QTRY_VERIFY_WITH_TIMEOUT(!session.linksBusy(), 7000);
         QVERIFY(!session.meetingLinks().value(QStringLiteral("canChange")).toBool());
-        QVERIFY(!session.inviteToMeeting(321, {QStringLiteral("other@example.invalid")}, {}));
         QSignalSpy meetingChanges(&session, &PortalSession::meetingsChanged);
         session.refreshMeetings();
         QTRY_VERIFY_WITH_TIMEOUT(!session.busy(), 7000);
@@ -868,6 +847,22 @@ private slots:
         QCOMPARE(detailCount.readAll(), firstDetailCount);
         detailCount.close();
         QVERIFY(unresolvedMeeting.remove());
+        QVERIFY(log.open(QIODevice::ReadOnly));
+        const auto invitationsBeforeClientSubject = log.readAll();
+        log.close();
+        QFile clientSubject(directory.filePath(QStringLiteral("client-side-invitation-subject")));
+        QVERIFY(clientSubject.open(QIODevice::WriteOnly));
+        clientSubject.close();
+        session.createMeeting(QStringLiteral("Local journey"), start.toMSecsSinceEpoch(),
+                              end.toMSecsSinceEpoch(), 1, QStringLiteral("123456"),
+                              {QStringLiteral("newguest@example.invalid")}, {}, QStringLiteral("654321"));
+        QTRY_COMPARE_WITH_TIMEOUT(created.size(), 3, 7000);
+        QTRY_VERIFY_WITH_TIMEOUT(!session.inviting() && !session.creatingMeeting(), 7000);
+        QVERIFY(session.invitationStatus().contains(QStringLiteral("Add them in the portal")));
+        QVERIFY(log.open(QIODevice::ReadOnly));
+        QCOMPARE(log.readAll(), invitationsBeforeClientSubject);
+        log.close();
+        QVERIFY(clientSubject.remove());
         QVERIFY(CredentialStore::remove(origin, username, nullptr));
         QVERIFY(expireOnce.open(QIODevice::WriteOnly));
         expireOnce.close();

@@ -125,14 +125,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/meeting/321/invite/":
             if "wizard_current" in url.query:
                 self.send(200, "Next step")
-            elif self.server.log_path.with_name("broken-invitation-form").exists():
-                self.send(200, '<form><input name="renamed-subject" value="Invitation"></form>')
+            elif self.server.log_path.with_name("client-side-invitation-subject").exists():
+                self.send(200, '<form><input name="message_title" required>'
+                          '<div data-name="message" data-value="&lt;p&gt;Join&lt;/p&gt;"></div></form>')
             else:
                 self.send(200, '<form><input name="message_title" value="Invitation">'
                           '<div data-name="message" data-value="&lt;p&gt;Join&lt;/p&gt;"></div></form>')
         elif path in ("/meeting/321/invite/moderator/", "/meeting/323/invite/moderator/"):
-            if self.server.log_path.with_name("broken-invitation-form").exists():
-                self.send(200, '<form><input name="renamed-subject" value="Invitation"></form>')
+            if self.server.log_path.with_name("client-side-invitation-subject").exists():
+                self.send(200, '<form><input name="message_title" required>'
+                          '<div data-name="message" data-value="&lt;p&gt;Join&lt;/p&gt;"></div></form>')
             else:
                 self.send(200, '<form><input name="message_title" value="Moderator invitation">'
                           '<div data-name="message" data-value="&lt;p&gt;Join&lt;/p&gt;"></div></form>')
@@ -178,7 +180,8 @@ class Handler(BaseHTTPRequestHandler):
                                           else "/webapp/#/?conference=moderator&pin=0782"),
                 "room_name": "555123", "sip": "sip:555123@example.invalid",
                 "invites": invites, "can_change": True,
-                "url": "" if portal_guest_link else "/meeting/321/"}}), "application/json")
+                "url": ("/meeting/999/" if self.server.log_path.with_name("wrong-detail-url").exists()
+                        else "" if portal_guest_link else "/meeting/321/")}}), "application/json")
             if slow_detail:
                 self.server.log_path.with_name("detail-finished").touch()
         elif path == "/api/v1/meeting/322/":
@@ -323,7 +326,7 @@ def main():
     server.rest_meeting = None
     server.invitations = {}
     server.detail_invites = [
-        {"id": 17, "email": "guest@example.invalid", "is_moderator": False},
+        {"id": 17, "email": "participant@example.invalid", "is_moderator": False},
         {"id": 18, "email": "creator@example.invalid", "is_moderator": True},
         {"id": 19, "email": "GUEST@example.invalid", "is_moderator": True},
     ]

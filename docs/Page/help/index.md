@@ -46,7 +46,7 @@ Open **New meeting** and set the title, date, time and invitees. With Calendar a
 
 ## Contacts and invitations
 
-Contacts can suggest addresses when you allow access. Meeting details show separate links and PINs for participants and moderators when the portal provides them. You can change invitations when the portal allows it.
+Contacts can suggest addresses when you allow access. Meeting details show separate links and PINs for participants and moderators when the portal provides them. To add people to an existing meeting, open **Invitations in portal** from its details.
 
 <figure class="doc-shot">
   <a href="{{ '/assets/guides/details.png' | relative_url }}" target="_blank" rel="noopener" aria-label="Open the meeting details guide image at full size in a new tab"><img src="{{ '/assets/guides/details.png' | relative_url }}" width="640" height="470" loading="lazy" alt="Focused meeting details with separate participant and moderator links, PINs, copy controls and invitation lists"></a>

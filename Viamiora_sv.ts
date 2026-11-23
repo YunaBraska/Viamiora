@@ -239,29 +239,9 @@
         <translation>Ta bort inbjudan till %1</translation>
     </message>
     <message>
-        <location filename="qml/Main.qml" line="1932"/>
-        <source>Hide invitation</source>
-        <translation>Dölj inbjudan</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1932"/>
-        <source>+ Invite people</source>
-        <translation>+ Bjud in personer</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1939"/>
+        <location filename="qml/Main.qml" line="1558"/>
         <source>Invitees</source>
         <translation>Inbjudna</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1946"/>
-        <source>Sending…</source>
-        <translation>Skickar…</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1946"/>
-        <source>Send invitations</source>
-        <translation>Skicka inbjudningar</translation>
     </message>
     <message>
         <location filename="qml/Main.qml" line="1975"/>
@@ -405,6 +385,11 @@
         <location filename="qml/Main.qml" line="1337"/>
         <source>Past meetings</source>
         <translation>Tidigare möten</translation>
+    </message>
+    <message>
+        <location filename="qml/Main.qml" line="1923"/>
+        <source>↗  Invitations in portal</source>
+        <translation>↗  Inbjudningar i portalen</translation>
     </message>
     <message>
         <location filename="qml/Main.qml" line="2026"/>
@@ -941,20 +926,10 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/PortalSessionDetails.cpp" line="220"/>
-        <source>This meeting cannot be changed here.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="src/PortalSessionDetails.cpp" line="226"/>
         <location filename="src/PortalSessionBooking.cpp" line="55"/>
         <source>Check the email addresses.</source>
         <translation>Kontrollera e-postadresserna.</translation>
-    </message>
-    <message>
-        <location filename="src/PortalSessionDetails.cpp" line="241"/>
-        <source>Everyone selected is already invited.</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/PortalSessionDetails.cpp" line="261"/>
@@ -1180,8 +1155,8 @@
     </message>
     <message>
         <location filename="src/PortalSessionBooking.cpp" line="190"/>
-        <source>Some invitations could not be confirmed.</source>
-        <translation type="unfinished"></translation>
+        <source>Some invitations could not be sent here. Add them in the portal.</source>
+        <translation>Vissa inbjudningar kunde inte skickas här. Lägg till dem i portalen.</translation>
     </message>
 </context>
 <context>

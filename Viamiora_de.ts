@@ -239,29 +239,9 @@
         <translation>Einladung für %1 entfernen</translation>
     </message>
     <message>
-        <location filename="qml/Main.qml" line="1932"/>
-        <source>Hide invitation</source>
-        <translation>Einladung schließen</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1932"/>
-        <source>+ Invite people</source>
-        <translation>+ Personen einladen</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1939"/>
+        <location filename="qml/Main.qml" line="1558"/>
         <source>Invitees</source>
         <translation>Eingeladene</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1946"/>
-        <source>Sending…</source>
-        <translation>Wird gesendet…</translation>
-    </message>
-    <message>
-        <location filename="qml/Main.qml" line="1946"/>
-        <source>Send invitations</source>
-        <translation>Einladungen senden</translation>
     </message>
     <message>
         <location filename="qml/Main.qml" line="1975"/>
@@ -405,6 +385,11 @@
         <location filename="qml/Main.qml" line="1337"/>
         <source>Past meetings</source>
         <translation>Vergangene Termine</translation>
+    </message>
+    <message>
+        <location filename="qml/Main.qml" line="1923"/>
+        <source>↗  Invitations in portal</source>
+        <translation>↗  Einladungen im Portal</translation>
     </message>
     <message>
         <location filename="qml/Main.qml" line="2026"/>
@@ -941,20 +926,10 @@
         <translation>Das Portal lieferte keine teilbaren Links für dieses Meeting.</translation>
     </message>
     <message>
-        <location filename="src/PortalSessionDetails.cpp" line="220"/>
-        <source>This meeting cannot be changed here.</source>
-        <translation>Dieses Meeting kann hier nicht geändert werden.</translation>
-    </message>
-    <message>
         <location filename="src/PortalSessionDetails.cpp" line="226"/>
         <location filename="src/PortalSessionBooking.cpp" line="55"/>
         <source>Check the email addresses.</source>
         <translation>Bitte die E-Mail-Adressen prüfen.</translation>
-    </message>
-    <message>
-        <location filename="src/PortalSessionDetails.cpp" line="241"/>
-        <source>Everyone selected is already invited.</source>
-        <translation>Alle ausgewählten Personen sind bereits eingeladen.</translation>
     </message>
     <message>
         <location filename="src/PortalSessionDetails.cpp" line="261"/>
@@ -1180,8 +1155,8 @@
     </message>
     <message>
         <location filename="src/PortalSessionBooking.cpp" line="190"/>
-        <source>Some invitations could not be confirmed.</source>
-        <translation>Einige Einladungen konnten nicht bestätigt werden.</translation>
+        <source>Some invitations could not be sent here. Add them in the portal.</source>
+        <translation>Einige Einladungen konnten hier nicht gesendet werden. Füge sie im Portal hinzu.</translation>
     </message>
 </context>
 <context>
