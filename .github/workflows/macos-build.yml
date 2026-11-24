@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build:
-    uses: YunaBraska/YunaBraska/.github/workflows/wc_cpp_macos_build.yml@469372e592d87a003dbfae15ef8d50194bcea7e5
+    uses: YunaBraska/YunaBraska/.github/workflows/wc_cpp_macos_build.yml@c50354ba274461b06a13b961d219629d3bb57ae2
     with:
       ref: ${{ inputs.ref }}
       version: ${{ inputs.version }}
